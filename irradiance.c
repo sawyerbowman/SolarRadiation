@@ -10,6 +10,22 @@
 #include "solarPosition.h"
 
 /**
+ *This method uses both beam and diffuse irradiance to calculate
+ *the global irradiance
+ */
+
+double calcGlobalIrradiance(double h, double elevation, double turbidity, double dayNum, double sunAngle){
+    /*
+     *TODO: need to determine if square is in shadow. If it is,
+     *it can't have beam irradiance. Regardless of shadow, diffuse
+     *irradiance will touch the square.
+     */
+    double beam = beamIrradiance(h, elevation, turbidity, dayNum, sunAngle);
+    double diffuse = diffuseIrradiance(h, turbidity, dayNum);
+    return beam + diffuse;
+}
+
+/**
  *The following methods are for beam irradiance
  */
 
