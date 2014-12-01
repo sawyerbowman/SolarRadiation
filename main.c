@@ -1,4 +1,10 @@
-//main.c
+//
+//  main.c
+//
+//
+//  Created by Sawyer Bowman on 12/1/14.
+//
+//
 
 #include "viewshed.h"
 #include "solarPosition.h"

@@ -1,4 +1,10 @@
-//Viewshed.c
+//
+//  viewshed.c
+//
+//
+//  Created by Sawyer Bowman on 12/1/14.
+//
+//
 
 #include <stdio.h>
 #include <stdlib.h>

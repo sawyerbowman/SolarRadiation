@@ -1,4 +1,13 @@
-//solarPosition.h
+//
+//  solarPosition.h
+//
+//
+//  Created by Sawyer Bowman on 12/1/14.
+//
+//
+
+#ifndef _solarPosition_h
+#define _solarPosition_h
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,4 +39,6 @@ double convertToDegrees(double radian);
 
 //Convert to radians
 double convertToRadians(double degree);
+
+#endif
 

@@ -1,4 +1,10 @@
-//solarPosition.c
+//
+//  solarPosition.c
+//
+//
+//  Created by Sawyer Bowman on 12/1/14.
+//
+//
 
 #include "solarPosition.h"
 

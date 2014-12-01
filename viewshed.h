@@ -1,4 +1,13 @@
-//Viewshed.h
+//
+//  viewshed.h
+//
+//
+//  Created by Sawyer Bowman on 12/1/14.
+//
+//
+
+#ifndef _viewshed_h
+#define _viewshed_h
 
 typedef struct _grid {
   //The size of the grid and other header properties
@@ -34,3 +43,5 @@ float calculateSlope(float startx, float starty, float endx, float endy);
 
 //Calculate the distance between 2 given points
 float calculateDistance(float startx, float starty, float endx, float endy);
+
+#endif
