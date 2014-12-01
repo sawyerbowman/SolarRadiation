@@ -9,6 +9,10 @@
 #include "irradiance.h"
 #include "solarPosition.h"
 
+/**
+ *The following methods are for beam irradiance
+ */
+
 double beamIrradiance(double h, double elevation, double turbidity, double dayNum, double sunAngle){
     double dayAngle = calcDayAngle(dayNum);
     double correctionFactor = calcCorrectionFactor(dayAngle);
@@ -71,3 +75,63 @@ double calcRayleigh(double m) {
     }
     return 1/(10.4+.718*m);
 }
+
+/**
+ *The following methods are for diffuse irradiation
+ */
+
+//Retrieve necessary components to calculate diffuse irradiance
+double diffuseIrradiance(double h, double turbidity, double dayNum) {
+    double dayAngle = calcDayAngle(dayNum);
+    double correctionFactor = calcCorrectionFactor(dayAngle);
+    double et = calcEtIrradiance(correctionFactor);
+    
+    double transmission = calcTransmission(turbidity);
+    
+    double a1Prime = calcA1Prime(turbidity);
+    double a1 = calcA1(a1Prime, transmission);
+    double a2 = calcA2(turbidity);
+    double a3 = calcA3(turbidity);
+    double solar = calcSolar(a1, a2, a3, h);
+    
+    return calcDiffuseIrradiance(et, transmission, solar);
+}
+
+//Calculate diffuse irradiance
+double calcDiffuseIrradiance(double et, double transmission, double solar) {
+    return et*transmission*solar;
+}
+
+//Calculate value of transmission function
+double calcTransmission(double turbidity) {
+    return -.015843 + .030543*turbidity + .0003797*pow(turbidity, 2);
+}
+
+//Calculate value of solar altitude function
+double calcSolar(double a1, double a2, double a3, double h) {
+    return a1 + a2*sin(h) + a3*pow(sin(h), 2);
+}
+
+//Calculate A1
+double calcA1(double a1Prime, double transmission) {
+    if (a1Prime*transmission < .0022){
+        return .0022/transmission;
+    }
+    return a1Prime;
+}
+
+//Calculate A1Prime
+double calcA1Prime(double turbidity) {
+    return .26463 - .061581*turbidity + .0031408*pow(turbidity, 2);
+}
+
+//Calculate A2
+double calcA2(double turbidity) {
+    return 2.04020 + .018945*turbidity -.011161*pow(turbidity, 2);
+}
+
+//Calculate A3
+double calcA3(double turbidity) {
+    return -1.3025 + .039231*turbidity + .0085079*pow(turbidity, 2);
+}
+

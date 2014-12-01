@@ -18,7 +18,11 @@
 #include <math.h>
 #include <float.h>
 
-//Retrieve necessary components to calcualte beam irradiance
+/**
+ *The following methods are for beam irradiance
+ */
+
+//Retrieve necessary components to calculate beam irradiance
 double beamIrradiance(double h, double elevation, double turbidity, double dayNum, double sunAngle);
 
 //Calculate the Beam Irradiance for horizontal surface
@@ -48,6 +52,33 @@ double calcP(double elevation);
 //Calculate Rayleigh optical thickness
 double calcRayleigh(double m);
 
+/**
+ *The following methods are for diffuse irradiance
+ */
+
+//Retrieve necessary components to calculate diffuse irradiance
+double diffuseIrradiance(double h, double turbidity, double dayNum);
+
+//Calculate diffuse irradiance
+double calcDiffuseIrradiance(double et, double transmission, double solarFunction);
+
+//Calculate value of transmission function
+double calcTransmission(double turbidity);
+
+//Calculate value of solar altitude function
+double calcSolar(double a1, double a2, double a3, double h);
+
+//Calculate A1
+double calcA1(double a1Prime, double transmission);
+
+//Calculate A1Prime
+double calcA1Prime(double turbidity);
+
+//Calculate A2
+double calcA2(double turbidity);
+
+//Calculate A3
+double calcA3(double turbidity);
 
 
 
