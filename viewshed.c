@@ -14,7 +14,10 @@
 #include <float.h>
 #include "viewshed.h"
 
-//Read data from the file into the grid
+/**
+ *Read data from the file into the grid
+ */
+
 Grid* readFile(char* name){
   FILE *f;
   char s[100];
@@ -82,7 +85,10 @@ Grid* readFile(char* name){
   return grid;
 }
 
-//Write the data to the specified file name
+/**
+ *Write the data to the specified file name
+ */
+
 void writeFile(char* name, Grid* grid){
   FILE* file = fopen(name, "ab+");
   char* ncols = "ncols ";
@@ -114,7 +120,10 @@ void writeFile(char* name, Grid* grid){
   printf("DONE!\n");
 }
 
-//Given a grid, print its header
+/**
+ *Given a grid, print its header
+ */
+
 void printHeader(Grid* grid){
   printf("ncols: \t\t %d\n", grid->cols);
   printf("nrows: \t\t %d\n", grid->rows);
@@ -124,7 +133,10 @@ void printHeader(Grid* grid){
   printf("NODATA_value: \t %d\n", grid->noDataValue);
 }
 
-//Given a grid, print its values
+/**
+ *Given a grid, print its values
+ */
+
 void printValues(Grid* grid){
   float** data = grid->data;
   int i, j;
@@ -136,6 +148,10 @@ void printValues(Grid* grid){
   }
 }
 
+/**
+ *Initialize a viewshed grid
+ */
+
 Grid* viewshedGridInit(Grid* elevGrid){
   float** data = (float**)malloc(elevGrid->rows*sizeof(float*));
   int i, j;
@@ -146,10 +162,10 @@ Grid* viewshedGridInit(Grid* elevGrid){
   for (i = 0; i < elevGrid->rows; i++){
     for (j = 0; j < elevGrid->cols; j++){
       if (elevGrid->data[i][j] == elevGrid->noDataValue){
-	data[i][j] = elevGrid->noDataValue;
+        data[i][j] = elevGrid->noDataValue;
       }
       else {
-	data[i][j] = 0;
+        data[i][j] = 0;
       }
     }
   }
@@ -166,7 +182,10 @@ Grid* viewshedGridInit(Grid* elevGrid){
   return viewshedGrid;
 }
 
-//Calculates the slope given 2 points
+/**
+ *Calculates the slope given 2 points
+ */
+
 float calculateSlope(float startx, float starty, float endx, float endy){
   float slope;
   float xDifference = endx-startx;
@@ -182,6 +201,10 @@ float calculateSlope(float startx, float starty, float endx, float endy){
   return slope;
 }
 
+/**
+ *Implements the distance formula
+ */
+
 float calculateDistance(float startx, float starty, float endx, float endy){
   float xTotal = (startx-endx)*(startx-endx);
   float yTotal = (starty-endy)*(starty-endy);
@@ -189,9 +212,14 @@ float calculateDistance(float startx, float starty, float endx, float endy){
   return distance;
 }
 
-//Computes whether (i,j) is visible from (vpi, vpj)
-//Throughout this method, it is pivotal to remember that y is row (i) and x is col (j)
-//A lot of the commented print statements display different variable values, useful for debugging
+/**
+ *Computes whether (i,j) is visible from (vpi, vpj)
+ *Throughout this method, it is pivotal to remember that y is row (i) and x is col (j)
+ *A lot of the commented print statements display different variable values, useful for debugging
+ */
+
+//TODO: Need to change this to latitude and longitude for sun position
+
 int pointVisibleFromPoint(Grid* elevGrid, int i, int j, int vpi, int vpj){
   //printf("\n");
   //printf("Checking if New Point (%d, %d) is visible from Original Point (%d, %d)\n", i, j, vpi, vpj);
@@ -406,27 +434,30 @@ int pointVisibleFromPoint(Grid* elevGrid, int i, int j, int vpi, int vpj){
   return visible;
 }
 
-//Compute the viewshed
+/**
+ *Compute the viewshed
+ */
 void computeViewshed(Grid* elevGrid, Grid* viewshedGrid, int vpi, int vpj){
   int i, j;
   for (i = 0; i < elevGrid->rows; i++){
     for (j = 0; j < elevGrid->cols; j++){
       if (viewshedGrid->data[i][j] == viewshedGrid->noDataValue){
-	//viewshedGrid->data[i][j] = 0;
-	continue;
+        //viewshedGrid->data[i][j] = 0;
+        continue;
       }
       if (i == vpi && j == vpj){
-	//The viewshed of itself is clearly 1
-	viewshedGrid->data[i][j] = 1;
-	continue;
+        //The viewshed of itself is clearly 1
+        viewshedGrid->data[i][j] = 1;
+        continue;
       }
       //see if visible, if yes set appropriate cell to 1
+      //TODO: Have to change vpi and vpj to sun's position
       int visible = pointVisibleFromPoint(elevGrid, i, j, vpi, vpj);
       if (visible == 1){
-	viewshedGrid->data[i][j] = 1;
+        viewshedGrid->data[i][j] = 1;
       }
       else {
-	viewshedGrid->data[i][j] = 0;
+        viewshedGrid->data[i][j] = 0;
       }
     }
   }
