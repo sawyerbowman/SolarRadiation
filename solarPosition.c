@@ -14,7 +14,7 @@
  *Must convert to radians.
  */
 
-double calcSunAngle(double dayNum, double localTime, double localLat){
+double calcSunAngle(double dayNum, double localTime, double localLat, double elevation, double distance){
     double latRadian = convertToRadians(localLat);
     double dayAngle = calcDayAngle(dayNum);
     double sunDeclination = calcSunDeclination(dayAngle);
@@ -22,7 +22,32 @@ double calcSunAngle(double dayNum, double localTime, double localLat){
     double constTwo = calcConstantTwo(latRadian, sunDeclination);
     double hourAngle = calcHourAngle(localTime);
     double sunAngleRad = asin(constOne*cos(hourAngle) + constTwo);
-    return convertToDegrees(sunAngleRad);
+    double sunAngleDeg = convertToDegrees(sunAngleRad);
+    return angleHeightTransform(sunAngleDeg, distance, elevation);
+}
+
+/**
+ *Calculate latitude of position directly under sun
+ */
+
+double calcSunLat(double dayNum){
+    return TROPIC_LAT*cos((dayNum-JUNE_21)/(365.25/(2*M_PI)));
+}
+
+/**
+ *Calculate longitude of position directly under sun
+ */
+
+double calcSunLong(double time, double offset){
+    return (time - offset)*(360/24);
+}
+
+/**
+ *Apply transformation of angle of elevation for point's elevation
+ */
+
+double angleHeightTransform(double sunAngleDeg, double distance, double elevation){
+    return atan(tan(sunAngleDeg) - (elevation/distance));
 }
 
 /**
