@@ -8,20 +8,21 @@
 
 #ifndef _viewshed_h
 #define _viewshed_h
+#include "solarPosition.h"
 
 typedef struct _grid {
   //The size of the grid and other header properties
-  int rows, cols, xllcorner, yllcorner, cellsize, noDataValue;
+  int rows, cols, longitude, latitude, cellsize, noDataValue;
   
   //The 2D array of values in the grid
   float** data;
 }Grid;
 
 //Computes whether (i,j) is visible from (vprow, vpcol)
-int pointVisibleFromPoint(Grid* elevGrid, int i, int j, int vprow, int vpcol);
+int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, double sunLat, double sunLong);
 
 //Compute the viewshed
-void computeViewshed(Grid* elevGrid, Grid* viewshedGrid,  int vprow, int vpcol);
+void computeViewshed(Grid* elevGrid, Grid* viewshedGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone);
 
 //Reads information (terrain) from a given file
 Grid* readFile(char* name);

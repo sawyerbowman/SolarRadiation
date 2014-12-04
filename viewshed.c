@@ -21,7 +21,7 @@
 Grid* readFile(char* name){
   FILE *f;
   char s[100];
-  int ncols, nrows, cellsize, xllcorner, yllcorner, noDataValue;
+  int ncols, nrows, cellsize, longitude, latitude, noDataValue;
   
   f = fopen(name, "r");
   if (f == NULL){
@@ -40,10 +40,10 @@ Grid* readFile(char* name){
       fscanf(f, "%d", &nrows);
     }
     else if (strcmp(s, "xllcorner") == 0){
-      fscanf(f, "%d", &xllcorner);
+      fscanf(f, "%d", &longitude);
     }
     else if (strcmp(s, "yllcorner") == 0){
-      fscanf(f, "%d", &yllcorner);
+      fscanf(f, "%d", &latitude);
     }
     else if (strcmp(s, "cellsize") == 0){
       fscanf(f, "%d", &cellsize);
@@ -76,8 +76,8 @@ Grid* readFile(char* name){
   grid = malloc(sizeof(Grid));
   grid->rows = nrows;
   grid->cols = ncols;
-  grid->xllcorner = xllcorner;
-  grid->yllcorner = yllcorner;
+  grid->longitude = longitude;
+  grid->latitude = latitude;
   grid->cellsize = cellsize;
   grid->noDataValue = noDataValue;
   grid->data = data;
@@ -93,8 +93,8 @@ void writeFile(char* name, Grid* grid){
   FILE* file = fopen(name, "ab+");
   char* ncols = "ncols ";
   char* nrows = "nrows ";
-  char* xllcorner = "xllcorner ";
-  char* yllcorner = "yllcorner ";
+  char* longitude = "xllcorner ";
+  char* latitude = "yllcorner ";
   char* cellsize = "cellsize ";
   char* noDataValue = "NODATA_value ";
   fprintf(file, "%s", ncols);
@@ -102,9 +102,9 @@ void writeFile(char* name, Grid* grid){
   fprintf(file, "%s", nrows);
   fprintf(file, "%d\n", grid->rows);
   fprintf(file, "%s", xllcorner);
-  fprintf(file, "%d\n", grid->xllcorner);
+  fprintf(file, "%d\n", grid->longitude);
   fprintf(file, "%s", yllcorner);
-  fprintf(file, "%d\n", grid->yllcorner);
+  fprintf(file, "%d\n", grid->latitude);
   fprintf(file, "%s", cellsize);
   fprintf(file, "%d\n", grid->cellsize);
   fprintf(file, "%s", noDataValue);
@@ -127,8 +127,8 @@ void writeFile(char* name, Grid* grid){
 void printHeader(Grid* grid){
   printf("ncols: \t\t %d\n", grid->cols);
   printf("nrows: \t\t %d\n", grid->rows);
-  printf("xllcorner: \t %d\n", grid->xllcorner);
-  printf("yllcorner: \t %d\n", grid->yllcorner);
+  printf("longitude: \t %d\n", grid->longitude);
+  printf("latitude: \t %d\n", grid->latitude);
   printf("cellsize: \t %d\n", grid->cellsize);
   printf("NODATA_value: \t %d\n", grid->noDataValue);
 }
@@ -213,14 +213,12 @@ float calculateDistance(float startx, float starty, float endx, float endy){
 }
 
 /**
- *Computes whether (i,j) is visible from (vpi, vpj)
- *Throughout this method, it is pivotal to remember that y is row (i) and x is col (j)
+ *Computes whether (i,j) represented by currentLat, currentLong, is visible from the point directly
+ *under the sun. Throughout this method, it is pivotal to remember that y is row (i) and x is col (j)
  *A lot of the commented print statements display different variable values, useful for debugging
  */
 
-//TODO: Need to change this to latitude and longitude for sun position
-
-int pointVisibleFromPoint(Grid* elevGrid, int i, int j, int vpi, int vpj){
+int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, double sunLat, double sunLong){
   //printf("\n");
   //printf("Checking if New Point (%d, %d) is visible from Original Point (%d, %d)\n", i, j, vpi, vpj);
   
@@ -233,6 +231,8 @@ int pointVisibleFromPoint(Grid* elevGrid, int i, int j, int vpi, int vpj){
   float originalHeight = elevGrid->data[vpi][vpj];
   float newHeight = elevGrid->data[i][j];
 
+    
+    
   //Use these points (start and end) to make sure lines always run from left to right
   //Later, we will use these same points to make sure lines run from bottom to top
   float startx;
@@ -437,7 +437,30 @@ int pointVisibleFromPoint(Grid* elevGrid, int i, int j, int vpi, int vpj){
 /**
  *Compute the viewshed
  */
-void computeViewshed(Grid* elevGrid, Grid* viewshedGrid, int vpi, int vpj){
+void computeViewshed(Grid* elevGrid, Grid* viewshedGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone){
+    
+    for (startTime; startTime <= endTime; startTime += timeStep){
+        //calculate lat and long of position directly under sun
+        sunLat = calcSunLat(dayNum);
+        sunLong = calcSunLong(startTime, timeZone);
+        for (i = 0; i < elevGrid->rows; i++){
+            for (j = 0; j < elevGrid->cols; j++){
+                //Calculate lat and long of current cell from bottom left corner of grid
+                double currentLat = elevGrid->latitude + elevGrid->cellsize*(elevGrid->rows-i);
+                double currentLong = elevGrid->longitude + elevGrid->cellsize*j;
+                
+                if (viewshedGrid->data[i][j] == viewshedGrid->noDataValue){
+                    //viewshedGrid->data[i][j] = 0;
+                    continue;
+                }
+                //see if visible (if point directly under sun), if yes set appropriate cell to 1
+                if (currentLat == sunLat && currentLong = sunLong){
+                    viewshedGrid->data[i][j] = 1;
+                    continue;
+                }
+                int visible = pointVisibleFromSun(elevGrid, currentLat, currentLong, sunLat, sunLong);
+    }
+    
   int i, j;
   for (i = 0; i < elevGrid->rows; i++){
     for (j = 0; j < elevGrid->cols; j++){
@@ -450,7 +473,7 @@ void computeViewshed(Grid* elevGrid, Grid* viewshedGrid, int vpi, int vpj){
         viewshedGrid->data[i][j] = 1;
         continue;
       }
-      //see if visible, if yes set appropriate cell to 1
+      
       //TODO: Have to change vpi and vpj to sun's position
       int visible = pointVisibleFromPoint(elevGrid, i, j, vpi, vpj);
       if (visible == 1){
