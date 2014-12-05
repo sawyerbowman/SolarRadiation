@@ -11,7 +11,7 @@
 /**
  *Calculate the angle between sun path and horizontal surface
  *Assume localLat is in degrees (most common form of latitude).
- *Must convert to radians.
+ *Must convert to radians. Returns in degrees.
  */
 
 double calcSunAngle(double dayNum, double localTime, double localLat, double elevation, double distance){
@@ -27,7 +27,7 @@ double calcSunAngle(double dayNum, double localTime, double localLat, double ele
 }
 
 /**
- *Calculate latitude of position directly under sun
+ *Calculate latitude of position directly under sun. Returns in degrees.
  */
 
 double calcSunLat(double dayNum){

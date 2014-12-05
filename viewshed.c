@@ -15,7 +15,8 @@
 Grid* readFile(char* name){
     FILE *f;
     char s[100];
-    int ncols, nrows, cellsize, longitude, latitude, noDataValue;
+    int ncols, nrows;
+    double cellsize, longitude, latitude, noDataValue;
     
     f = fopen(name, "r");
     if (f == NULL){
@@ -34,16 +35,16 @@ Grid* readFile(char* name){
             fscanf(f, "%d", &nrows);
         }
         else if (strcmp(s, "xllcorner") == 0){
-            fscanf(f, "%d", &longitude);
+            fscanf(f, "%lf", &longitude);
         }
         else if (strcmp(s, "yllcorner") == 0){
-            fscanf(f, "%d", &latitude);
+            fscanf(f, "%lf", &latitude);
         }
         else if (strcmp(s, "cellsize") == 0){
-            fscanf(f, "%d", &cellsize);
+            fscanf(f, "%lf", &cellsize);
         }
         else if (strcmp(s, "NODATA_value") == 0){
-            fscanf(f, "%d", &noDataValue);
+            fscanf(f, "%lf", &noDataValue);
         }
         else {
             printf("Invalid format\n");
@@ -96,13 +97,13 @@ void writeFile(char* name, Grid* grid){
     fprintf(file, "%s", nrows);
     fprintf(file, "%d\n", grid->rows);
     fprintf(file, "%s", longitude);
-    fprintf(file, "%d\n", grid->longitude);
+    fprintf(file, "%f\n", grid->longitude);
     fprintf(file, "%s", latitude);
-    fprintf(file, "%d\n", grid->latitude);
+    fprintf(file, "%f\n", grid->latitude);
     fprintf(file, "%s", cellsize);
-    fprintf(file, "%d\n", grid->cellsize);
+    fprintf(file, "%f\n", grid->cellsize);
     fprintf(file, "%s", noDataValue);
-    fprintf(file, "%d\n", grid->noDataValue);
+    fprintf(file, "%f\n", grid->noDataValue);
     
     int i, j;
     for (i = 0; i < grid->rows; i++){
@@ -121,10 +122,10 @@ void writeFile(char* name, Grid* grid){
 void printHeader(Grid* grid){
     printf("ncols: \t\t %d\n", grid->cols);
     printf("nrows: \t\t %d\n", grid->rows);
-    printf("longitude: \t %d\n", grid->longitude);
-    printf("latitude: \t %d\n", grid->latitude);
-    printf("cellsize: \t %d\n", grid->cellsize);
-    printf("NODATA_value: \t %d\n", grid->noDataValue);
+    printf("longitude: \t %f\n", grid->longitude);
+    printf("latitude: \t %f\n", grid->latitude);
+    printf("cellsize: \t %f\n", grid->cellsize);
+    printf("NODATA_value: \t %f\n", grid->noDataValue);
 }
 
 /**

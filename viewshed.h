@@ -21,7 +21,8 @@
 
 typedef struct _grid {
   //The size of the grid and other header properties
-  int rows, cols, longitude, latitude, cellsize, noDataValue;
+    int rows, cols;
+    double longitude, latitude, cellsize, noDataValue;
   
   //The 2D array of values in the grid
   float** data;

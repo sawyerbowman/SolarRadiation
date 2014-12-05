@@ -40,6 +40,8 @@ int main(int argc, char** args){
     Grid* elevGrid;
     elevGrid = readFile(elevName);
     
+    printHeader(elevGrid);
+    
     //Initialize the energyGrid from the elevGrid
     Grid* energyGrid;
     energyGrid = gridInit(elevGrid);
