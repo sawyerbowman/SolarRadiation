@@ -14,14 +14,20 @@
  *the global irradiance
  */
 
-double calcGlobalIrradiance(double h, double elevation, double turbidity, double dayNum, double sunAngle){
+double calcGlobalIrradiance(double elevation, double turbidity, double dayNum, double sunAngle, int visible){
     /*
-     *TODO: need to determine if square is in shadow. If it is,
-     *it can't have beam irradiance. Regardless of shadow, diffuse
+     *If square is in shadow, it can't have beam irradiance. Regardless of shadow, diffuse
      *irradiance will touch the square.
      */
-    double beam = beamIrradiance(h, elevation, turbidity, dayNum, sunAngle);
-    double diffuse = diffuseIrradiance(h, turbidity, dayNum);
+    double beam, diffuse;
+    if (visible == 1){
+        beam = beamIrradiance(elevation, turbidity, dayNum, sunAngle);
+    }
+    else {
+        beam = 0;
+    }
+    diffuse = diffuseIrradiance(sunAngle, turbidity, dayNum);
+
     return beam + diffuse;
 }
 
@@ -29,7 +35,7 @@ double calcGlobalIrradiance(double h, double elevation, double turbidity, double
  *The following methods are for beam irradiance
  */
 
-double beamIrradiance(double h, double elevation, double turbidity, double dayNum, double sunAngle){
+double beamIrradiance(double elevation, double turbidity, double dayNum, double sunAngle){
     double dayAngle = calcDayAngle(dayNum);
     double correctionFactor = calcCorrectionFactor(dayAngle);
     double et = calcEtIrradiance(correctionFactor);

@@ -6,12 +6,6 @@
 //
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>
 #include "viewshed.h"
 
 /**
@@ -101,9 +95,9 @@ void writeFile(char* name, Grid* grid){
     fprintf(file, "%d\n", grid->cols);
     fprintf(file, "%s", nrows);
     fprintf(file, "%d\n", grid->rows);
-    fprintf(file, "%s", xllcorner);
+    fprintf(file, "%s", longitude);
     fprintf(file, "%d\n", grid->longitude);
-    fprintf(file, "%s", yllcorner);
+    fprintf(file, "%s", latitude);
     fprintf(file, "%d\n", grid->latitude);
     fprintf(file, "%s", cellsize);
     fprintf(file, "%d\n", grid->cellsize);
@@ -149,10 +143,10 @@ void printValues(Grid* grid){
 }
 
 /**
- *Initialize a viewshed grid
+ *Initialize a grid
  */
 
-Grid* viewshedGridInit(Grid* elevGrid){
+Grid* gridInit(Grid* elevGrid){
     float** data = (float**)malloc(elevGrid->rows*sizeof(float*));
     int i, j;
     for (i = 0; i < elevGrid->rows; i++){
@@ -170,16 +164,16 @@ Grid* viewshedGridInit(Grid* elevGrid){
         }
     }
     
-    Grid* viewshedGrid = malloc(sizeof(Grid));
-    viewshedGrid->rows = elevGrid->rows;
-    viewshedGrid->cols = elevGrid->cols;
-    viewshedGrid->xllcorner = elevGrid->xllcorner;
-    viewshedGrid->yllcorner = elevGrid->yllcorner;
-    viewshedGrid->cellsize = elevGrid->cellsize;
-    viewshedGrid->noDataValue = elevGrid->noDataValue;
-    viewshedGrid->data = data;
+    Grid* grid = malloc(sizeof(Grid));
+    grid->rows = elevGrid->rows;
+    grid->cols = elevGrid->cols;
+    grid->longitude = elevGrid->longitude;
+    grid->latitude = elevGrid->latitude;
+    grid->cellsize = elevGrid->cellsize;
+    grid->noDataValue = elevGrid->noDataValue;
+    grid->data = data;
     
-    return viewshedGrid;
+    return grid;
 }
 
 /**
@@ -229,14 +223,14 @@ void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doub
     //double cornerThreeLat = converTwoLat;
     //double cornerThreeLong = convertJToLong(grid->cols, grid);
     
-    double cornerFourLat = cornerOneLat;
-    double cornerFourLong = cornerThreeLong;
+    double cornerFourLat = grid->latitude;
+    double cornerFourLong = convertJToLong(grid->cols, grid);
     
     //Horizontal lines (one is bottom, two is top of grid), slope of zero
     double slopeOne = 0;
     double interceptOne = grid->latitude;
-    double slopeTwo = 0;
-    double interceptThree = convertIToLat(0);
+    double slopeThree = 0;
+    double interceptThree = convertIToLat(0, grid);
     
     //Vertical lines (two is left, four is right), slope of biggest float
     double slopeTwo = FLT_MAX;
@@ -248,56 +242,56 @@ void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doub
     //Determine if intersection with bottom grid border is correct
     double xOne = calcXIntersection(interceptOne, originalIntercept, originalSlope, slopeOne);
     double yOne = calcYIntersection(originalSlope, originalIntercept, xOne);
-    if (originalSlope < 0 && endy >= yOne && endx < xOne){
-        endy = yOne;
-        endx = xOne;
+    if (originalSlope < 0 && *endy >= yOne && *endx < xOne){
+        *endy = yOne;
+        *endx = xOne;
         return;
     }
-    else if (originalSlope >= 0 && endy >= yOne && endx >= xOne){
-        endy = yOne;
-        endx = xOne;
+    else if (originalSlope >= 0 && *endy >= yOne && *endx >= xOne){
+        *endy = yOne;
+        *endx = xOne;
         return;
     }
     
     //determine if intersection with left grid border is correct
     double xTwo = calcXIntersection(interceptTwo, originalIntercept, originalSlope, slopeTwo);
     double yTwo = calcYIntersection(originalSlope, originalIntercept, xTwo);
-    if (originalSlope < 0 && endy < yTwo && endx >= xTwo){
-        endy = yTwo;
-        endx = xTwo;
+    if (originalSlope < 0 && *endy < yTwo && *endx >= xTwo){
+        *endy = yTwo;
+        *endx = xTwo;
         return;
     }
-    else if (originalSlope >= 0 && endy >= yTwo && endx >= xTwo){
-        endy = yTwo;
-        endx = xTwo;
+    else if (originalSlope >= 0 && *endy >= yTwo && *endx >= xTwo){
+        *endy = yTwo;
+        *endx = xTwo;
         return;
     }
     
     //determine if intersection with top grid border is correct
     double xThree = calcXIntersection(interceptThree, originalIntercept, originalSlope, slopeThree);
     double yThree = calcYIntersection(originalSlope, originalIntercept, xThree);
-    if (originalSlope < 0 && endy <= yThree && endx >= xThree){
-        endy = yThree;
-        endx = xThree;
+    if (originalSlope < 0 && *endy <= yThree && *endx >= xThree){
+        *endy = yThree;
+        *endx = xThree;
         return;
     }
-    else if (originalSlope >= 0 && endy <= yThree && endx < xThree){
-        endy = yThree;
-        endx = xThree;
+    else if (originalSlope >= 0 && *endy <= yThree && *endx < xThree){
+        *endy = yThree;
+        *endx = xThree;
         return;
     }
     
     //determine if intersection with right grid border is correct
     double xFour = calcXIntersection(interceptFour, originalIntercept, originalSlope, slopeFour);
     double yFour = calcYIntersection(originalSlope, originalIntercept, xFour);
-    if (originalSlope < 0 && endy >= yFour && endx < xFour){
-        endy = yFour;
-        endx = xFour;
+    if (originalSlope < 0 && *endy >= yFour && *endx < xFour){
+        *endy = yFour;
+        *endx = xFour;
         return;
     }
-    else if (originalSlope >= 0 && endy < yFour && endx < xFour){
-        endy = yFour;
-        endx = xFour;
+    else if (originalSlope >= 0 && *endy < yFour && *endx < xFour){
+        *endy = yFour;
+        *endx = xFour;
         return;
     }
 }
@@ -352,7 +346,7 @@ double convertJToLong(double j, Grid* grid){
  *A lot of the commented print statements display different variable values, useful for debugging
  */
 
-int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, int i, int j, double sunLat, double sunLong){
+int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, double currentLong, int i, int j, double sunLat, double sunLong, double dayNum, double localTime, double turbidity){
     //printf("\n");
     //printf("Checking if New Point (%d, %d) is visible from Original Point (%d, %d)\n", i, j, vpi, vpj);
     
@@ -365,11 +359,12 @@ int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, i
     
     //Use these points (start and end) to make sure lines always run from left to right
     //Later, we will use these same points to make sure lines run from bottom to top
-    float startx;
-    float starty;
-    float endx;
-    float endy;
+    double startx;
+    double starty;
+    double endx;
+    double endy;
     
+    //Make sure lines are always running from left to right
     //The point (i,j) represented by (currentLat, currentLong) is farther right than (sunLat, sunLong),
     //make (i,j) represented by (currentLat, currentLong) the end point
     if (currentLong >= sunLong){
@@ -399,7 +394,7 @@ int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, i
     //printf("Intercept: (%f)\n", intercept);
     
     //We want to replace sunLat and sunLong with a newly calculated point that intersects at the edge of the grid
-    double* newX, newY;
+    double newX, newY;
     if (endx == sunLat){
         newX = startx;
         newY = starty;
@@ -409,7 +404,7 @@ int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, i
         newY = endy;
     }
     
-    findNewEndPoint(elevGrid, newX, newY, sunLat, sunLong, slope, intercept);
+    findNewEndPoint(elevGrid, &newX, &newY, sunLat, sunLong, slope, intercept);
     
     if (endx == sunLat){
         startx = newX;
@@ -421,19 +416,19 @@ int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, i
     }
     
     //xAxis is the variable that is incremented by 1 unit each time
-    //It represents the intersection point's x value
-    int xAxis = startx+1;
+    //It represents the intersection point's x (longitude) value
+    int xAxis = startx+elevGrid->cellsize;
     
     //printf("X Checks\n");
     
-    for (; xAxis < endx; xAxis++){
+    for (; xAxis < endx; xAxis+=elevGrid->cellsize){
         //printf("xAxis: (%d)\n", xAxis);
-        //intersectY represents the intersection point's y value (needs to be inverted)
+        //intersectY represents the intersection point's y (latitude) value (needs to be inverted)
         float intersectY = (-1*slope*xAxis) + intercept;
         //printf("Intersection Point's y value: (%f)\n", intersectY);
-        //h1y represents the y value of the point below the intersection point
+        //h1y represents the y (latitude) value of the point below the intersection point
         int h1y = ceil(intersectY);
-        //h2y represents the y value of the point above the intersection point
+        //h2y represents the y (latitude) value of the point above the intersection point
         int h2y = floor(intersectY);
         //elevH1 is the elevation of the h1 point
         float elevH1 = elevGrid->data[h1y][xAxis];
@@ -465,15 +460,15 @@ int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, i
         //printf("Intersection Point height: (%f)\n", intersectHeight);
         //printf("Original Point height: (%f)\n", originalHeight);
         
-        //If the angle of elevation between the original point and the intersect point is greater
-        //than the angle of elevation between the original point and the new point, the view path
+        //If the angle of elevation between the sun and the intersect point is greater
+        //than the angle of elevation between the sun and the new point, the view path
         //is obstructed
         
         //Angle of elevation is arctan(opposite/adjacent) where opposite is difference in height
         //and adjacent is distance between points
         //printf("Distance between Original Point and Intersect is (%f)\n", calculateDistance(vpi, vpj, intersectY, xAxis));
         
-        double solarAngleIntersection = calcSunAngle(dayNum, localTime, convertIToLat(intersectY), intersectHeight, calculateDistance(sunLat, sunLong, intersectY, xAxis));
+        double solarAngleIntersection = calcSunAngle(dayNum, localTime, convertIToLat(intersectY, elevGrid), intersectHeight, calculateDistance(sunLat, sunLong, intersectY, xAxis));
         
         //float angleOriginalIntersection = atan((fabs(originalHeight-intersectHeight))/calculateDistance(vpi, vpj, intersectY, xAxis));
         //If the Original Point is higher than the Intersection point, the elevation angle must be negative
@@ -482,7 +477,7 @@ int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, i
         //}
         //printf("Distance between Original Point and New Point is (%f)\n", calculateDistance(vpi, vpj, i, j));
         
-        double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i), newHeight, calculateDistance(sunLat, sunLong, currentLat, currentLong));
+        double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i, elevGrid), newHeight, calculateDistance(sunLat, sunLong, currentLat, currentLong));
         
         //float angleOriginalNew = atan((fabs(originalHeight-newHeight))/calculateDistance(vpi, vpj, i, j));
         //If the Original Point is higher than the New Point, the elevation angle must be negative
@@ -493,26 +488,27 @@ int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, i
         //printf("Angle of elevation between Original Point and New Point is (%f)\n", angleOriginalNew);
         if (solarAngleIntersection > solarAngleNew){
             //printf("New Point (%d, %d) is not visible from Original Point (%d, %d)\n", i, j, vpi, vpj);
+            energyGrid->data[i][j] += calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 0);
             return 0;
         }
     }
     
-    /**
-     *TODO: Fix the second half to mimic first half
-     */
-    
-    //Make sure lines always run from bottom to top
-    if (i < vpi){
-        startx = vpj;
-        starty = vpi;
-        endx = j;
-        endy = i;
+    //Make sure lines are always running from bottom to top
+    //The point (i,j) represented by (currentLat, currentLong) is farther up than (sunLat, sunLong),
+    //make (i,j) represented by (currentLat, currentLong) the end point
+    if (sunLat < currentLat){
+        startx = sunLong;
+        starty = sunLat;
+        endx = currentLong;
+        endy = currentLat;
     }
+    //The point (i,j) represented by (currentLat, currentLong) is farther down than (sunLat, sunLong),
+    //make (i,j) represented by (currentLat, currentLong) the start point
     else {
-        startx = j;
-        starty = i;
-        endx = vpj;
-        endy = vpi;
+        startx = currentLong;
+        starty = currentLat;
+        endx = sunLong;
+        endy = sunLat;
     }
     
     //recalculate the slope and intercept (points may have changed)
@@ -527,21 +523,43 @@ int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, i
     }
     //printf("Intercept: (%f)\n", intercept);
     
+    //We want to replace sunLat and sunLong with a newly calculated point that intersects at the edge of the grid
+    //double newX, newY;
+    if (endx == sunLat){
+        newX = startx;
+        newY = starty;
+    }
+    else {
+        newX = endx;
+        newY = endy;
+    }
+    
+    findNewEndPoint(elevGrid, &newX, &newY, sunLat, sunLong, slope, intercept);
+    
+    if (endx == sunLat){
+        startx = newX;
+        starty = newY;
+    }
+    else {
+        endx = newX;
+        endy = newY;
+    }
+    
     //Row corresponds to y, Col corresponds to x
     //printf("Start Point for y checks (%f %f)\n", starty, startx);
     //printf("End Point for y checks (%f %f)\n", endy, endx);
     
     //The process below is similar to that above, except the y is incremented
     //and the intersections point's x value is calculated
-    int yAxis = starty-1;
+    int yAxis = starty+elevGrid->cellsize;
     
     //printf("Y Checks\n");
     
-    for (; yAxis > endy; yAxis--){
+    for (; yAxis > endy; yAxis+=elevGrid->cellsize){
         //printf("yAxis: (%d)\n", yAxis);
         float intersectX;
         if (slope == FLT_MAX){
-            intersectX = vpj;
+            intersectX = sunLong;
         }
         else {
             intersectX = (yAxis-intercept)/slope*-1;
@@ -575,24 +593,32 @@ int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, i
         //printf("Intersection point's height (%f)\n", intersectHeight);
         //printf("Original point's height (%f)\n", originalHeight);
         //printf("Distance between original and intersect is (%f)\n", calculateDistance(vpi, vpj, yAxis, intersectX));
-        float angleOriginalIntersection = atan((fabs(originalHeight-intersectHeight))/calculateDistance(vpi, vpj, yAxis, intersectX));
+        //float angleOriginalIntersection = atan((fabs(originalHeight-intersectHeight))/calculateDistance(vpi, vpj, yAxis, intersectX));
+        
+        double solarAngleIntersection = calcSunAngle(dayNum, localTime, convertIToLat(yAxis, elevGrid), intersectHeight, calculateDistance(sunLat, sunLong, yAxis, intersectX));
+        
         //If the Original Point is higher than the intersection point, the angle of elevation must be negative
         //printf("Original point's height (%f)\n", originalHeight);
-        if (originalHeight > intersectHeight){
-            angleOriginalIntersection *= -1;
-        }
+        //if (originalHeight > intersectHeight){
+            //angleOriginalIntersection *= -1;
+        //}
         //printf("Angle of elevation between Original Point and Intersection Point is (%f)\n", angleOriginalIntersection);
-        float angleOriginalNew = atan((fabs(originalHeight-newHeight))/calculateDistance(vpi, vpj, i, j));
+        //float angleOriginalNew = atan((fabs(originalHeight-newHeight))/calculateDistance(vpi, vpj, i, j));
+        
+        double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i, elevGrid), newHeight, calculateDistance(sunLat, sunLong, currentLat, currentLong));
+        
         //If the Original Point is higher than the new point, the angle of elevation must be negative
-        if (originalHeight > newHeight){
-            angleOriginalNew *= -1;
-        }
+        //if (originalHeight > newHeight){
+            //angleOriginalNew *= -1;
+        //}
         //printf("Distance between original and new is (%f)\n", calculateDistance(vpi, vpj, i, j));
         //printf("Angle of elevation between Original Point and New Point is (%f)\n", angleOriginalNew);
-        if (angleOriginalIntersection > angleOriginalNew){
+        if (solarAngleIntersection > solarAngleNew){
             //printf("New Point (%d, %d) is not visible from Original Point (%d, %d)\n", i, j, vpi, vpj);
+            energyGrid->data[i][j] += calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 0);
             return 0;
         }
+        energyGrid->data[i][j] += calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 1);
     }
     //printf("New Point (%d, %d) is visible from Original Point (%d, %d)\n", i, j, vpi, vpj);
     return visible;
@@ -601,12 +627,17 @@ int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, i
 /**
  *Compute the viewshed
  */
-void computeViewshed(Grid* elevGrid, Grid* viewshedGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone){
+void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone, double turbidity){
     
-    for (startTime; startTime <= endTime; startTime += timeStep){
+    for (; startTime < endTime; startTime += timeStep){
+        //Initialize a new viewshed grid for each timestep
+        Grid* viewshedGrid;
+        viewshedGrid = gridInit(elevGrid);
+        
         //calculate lat and long of position directly under sun
-        sunLat = calcSunLat(dayNum);
-        sunLong = calcSunLong(startTime, timeZone);
+        double sunLat = calcSunLat(dayNum);
+        double sunLong = calcSunLong(startTime, timeZone);
+        int i, j;
         for (i = 0; i < elevGrid->rows; i++){
             for (j = 0; j < elevGrid->cols; j++){
                 //Calculate lat and long of current cell from bottom left corner of grid
@@ -620,12 +651,12 @@ void computeViewshed(Grid* elevGrid, Grid* viewshedGrid, double startTime, doubl
                     continue;
                 }
                 //see if visible (if point directly under sun), if yes set appropriate cell to 1
-                if (currentLat == sunLat && currentLong = sunLong){
+                if (currentLat == sunLat && currentLong == sunLong){
                     viewshedGrid->data[i][j] = 1;
                     continue;
                 }
                 
-                int visible = pointVisibleFromSun(elevGrid, currentLat, currentLong, i, j, sunLat, sunLong);
+                int visible = pointVisibleFromSun(elevGrid, energyGrid, currentLat, currentLong, i, j, sunLat, sunLong, dayNum, startTime, turbidity);
                 
                 if (visible == 1){
                     viewshedGrid->data[i][j] = 1;
@@ -635,5 +666,12 @@ void computeViewshed(Grid* elevGrid, Grid* viewshedGrid, double startTime, doubl
                 }
             }
         }
+        //TODO: save this viewshed grid to a folder of multiple viewshed grids
+        //Create unique name for new viewshed
+        char buf[100];
+        char nameBegin[] = "viewshed";
+        char nameEnd[] = ".asc";
+        sprintf(buf, "%s%f%s", nameBegin, startTime, nameEnd);
+        writeFile(buf, viewshedGrid);
     }
 }

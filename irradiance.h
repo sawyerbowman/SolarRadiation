@@ -19,11 +19,17 @@
 #include <float.h>
 
 /**
+ *This method returns the global irradiance
+ */
+
+double calcGlobalIrradiance(double elevation, double turbidity, double dayNum, double sunAngle, int visible);
+
+/**
  *The following methods are for beam irradiance
  */
 
 //Retrieve necessary components to calculate beam irradiance
-double beamIrradiance(double h, double elevation, double turbidity, double dayNum, double sunAngle);
+double beamIrradiance(double elevation, double turbidity, double dayNum, double sunAngle);
 
 //Calculate the Beam Irradiance for horizontal surface
 double calcHorizontalBeamIrradiance(double normalIrradiance, double h);

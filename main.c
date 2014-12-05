@@ -13,7 +13,7 @@ int main(int argc, char** args){
     
     char *elevName, *energyName;
     
-    if (argc != 6){
+    if (argc != 9){
         printf("Enter a filename to read into the program, a filename to store the output, and"
                "three numbers representing a start time, end time, and step size for time increments.\n");
         return 0;
@@ -24,28 +24,31 @@ int main(int argc, char** args){
     double beginTime = atof(args[3]);
     double endTime = atof(args[4]);
     double timeStep = atof(args[5]);
+    double dayNum = atof(args[6]);
+    double timeZone = atof(args[7]);
+    double turbidity = atof(args[8]);
     printf("%s\n", elevName);
     printf("%s\n", energyName);
     printf("%f\n", beginTime);
     printf("%f\n", endTime);
     printf("%f\n", timeStep);
+    printf("%f\n", dayNum);
+    printf("%f\n", timeZone);
+    printf("%f\n", turbidity);
     
     //Initialize the elevGrid from the file
     Grid* elevGrid;
     elevGrid = readFile(elevName);
     
-    //Initialize the viewshedGrid from the elevGrid
-    Grid* viewshedGrid;
-    viewshedGrid = viewshedGridInit(elevGrid);
+    //Initialize the energyGrid from the elevGrid
+    Grid* energyGrid;
+    energyGrid = gridInit(elevGrid);
     
-    //printHeader(viewshedGrid);
-    //printValues(viewshedGrid);
-    
-    //computeViewshed(elevGrid, viewshedGrid, vpi, vpj);
+    computeViewshed(elevGrid, energyGrid, beginTime, endTime, timeStep, dayNum, timeZone, turbidity);
     
     //printHeader(viewshedGrid);
     //printValues(viewshedGrid);
     
     //Save the viewshed grid to the specified file
-    //writeFile(viewfname, viewshedGrid);
+    writeFile(energyName, energyGrid);
 }

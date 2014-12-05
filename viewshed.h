@@ -8,7 +8,16 @@
 
 #ifndef _viewshed_h
 #define _viewshed_h
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
+#include <math.h>
+#include <float.h>
+#include "viewshed.h"
 #include "solarPosition.h"
+#include "irradiance.h"
 
 typedef struct _grid {
   //The size of the grid and other header properties
@@ -19,10 +28,10 @@ typedef struct _grid {
 }Grid;
 
 //Computes whether (i,j) is visible from (vprow, vpcol)
-int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, int i, int j, double sunLat, double sunLong);
+int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, double currentLong, int i, int j, double sunLat, double sunLong, double dayNum, double localTime, double turbidity);
 
 //Compute the viewshed
-void computeViewshed(Grid* elevGrid, Grid* viewshedGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone);
+void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone, double turbidity);
 
 //Reads information (terrain) from a given file
 Grid* readFile(char* name);
@@ -37,12 +46,33 @@ void printHeader(Grid* g);
 void printValues(Grid* g);
 
 //Initialize the ViewShed Grid
-Grid* viewshedGridInit(Grid* elevGrid);
+Grid* gridInit(Grid* elevGrid);
 
 //Calculate slope given 2 points
 float calculateSlope(float startx, float starty, float endx, float endy);
 
 //Calculate the distance between 2 given points
 float calculateDistance(float startx, float starty, float endx, float endy);
+
+//Replace sunLat, sunLong with intersection of line with edge of grid
+void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, double sunLong, double originalSlope, double originalIntercept);
+
+//Calculate x coordinate of intersection between two lines
+double calcXIntersection(double interceptB, double interceptA, double slopeA, double slopeB);
+
+//Calculate y coordinate of intersection between two lines
+double calcYIntersection(double slope, double intercept, double x);
+
+//Convert latitude to i coordinate
+double convertLatToI(double latitude, Grid* grid);
+
+//Convert longitude to j coordinate
+double convertLongToJ(double longitude, Grid* grid);
+
+//Convert i coordinate to latitude
+double convertIToLat(double i, Grid* grid);
+
+//Convert j coordinate to longitude
+double convertJToLong(double j, Grid* grid);
 
 #endif
