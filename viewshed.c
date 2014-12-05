@@ -396,7 +396,7 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     
     //We want to replace sunLat and sunLong with a newly calculated point that intersects at the edge of the grid
     double newX, newY;
-    if (endx == sunLat){
+    if (endx == sunLong){
         newX = startx;
         newY = starty;
     }
@@ -405,7 +405,13 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         newY = endy;
     }
     
+    printf("%lf\n", newX);
+    printf("%lf\n", newY);
+    
     findNewEndPoint(elevGrid, &newX, &newY, sunLat, sunLong, slope, intercept);
+    
+    printf("%lf\n", newX);
+    printf("%lf\n", newY);
     
     if (endx == sunLat){
         startx = newX;
@@ -418,24 +424,30 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     
     //xAxis is the variable that is incremented by 1 unit each time
     //It represents the intersection point's x (longitude) value
-    int xAxis = startx+elevGrid->cellsize;
+    double xAxis = startx+elevGrid->cellsize;
     
     //printf("X Checks\n");
     
     for (; xAxis < endx; xAxis+=elevGrid->cellsize){
         //printf("xAxis: (%d)\n", xAxis);
         //intersectY represents the intersection point's y (latitude) value (needs to be inverted)
-        float intersectY = (-1*slope*xAxis) + intercept;
+        float intersectYLat = (-1*slope*xAxis) + intercept;
+        
+        double intersectY = convertLatToI(intersectYLat, elevGrid);
+        int intersectX = (int) convertLongToJ(xAxis, elevGrid);
+        
+        
         //printf("Intersection Point's y value: (%f)\n", intersectY);
         //h1y represents the y (latitude) value of the point below the intersection point
         int h1y = ceil(intersectY);
         //h2y represents the y (latitude) value of the point above the intersection point
         int h2y = floor(intersectY);
         //elevH1 is the elevation of the h1 point
-        float elevH1 = elevGrid->data[h1y][xAxis];
+        
+        float elevH1 = elevGrid->data[h1y][intersectX];
         //printf("Point 1 (%d, %d) Elevation: (%f)\n", h2y, xAxis, elevH1);
         //elevH2 is the elevation of the h2 point
-        float elevH2 = elevGrid->data[h2y][xAxis];
+        float elevH2 = elevGrid->data[h2y][intersectX];
         //printf("Point 2 (%d, %d) Elevation: (%f)\n", h1y, xAxis, elevH2);
         //elevAngle is the angle of elevation between the h1 and h2 points
         float elevAngle;
@@ -469,7 +481,7 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         //and adjacent is distance between points
         //printf("Distance between Original Point and Intersect is (%f)\n", calculateDistance(vpi, vpj, intersectY, xAxis));
         
-        double solarAngleIntersection = calcSunAngle(dayNum, localTime, convertIToLat(intersectY, elevGrid), intersectHeight, calculateDistance(sunLat, sunLong, intersectY, xAxis));
+        double solarAngleIntersection = calcSunAngle(dayNum, localTime, convertIToLat(intersectY, elevGrid), intersectHeight, calculateDistance(sunLat, sunLong, intersectYLat, xAxis));
         
         //float angleOriginalIntersection = atan((fabs(originalHeight-intersectHeight))/calculateDistance(vpi, vpj, intersectY, xAxis));
         //If the Original Point is higher than the Intersection point, the elevation angle must be negative
@@ -552,26 +564,29 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     
     //The process below is similar to that above, except the y is incremented
     //and the intersections point's x value is calculated
-    int yAxis = starty+elevGrid->cellsize;
+    double yAxis = starty+elevGrid->cellsize;
     
     //printf("Y Checks\n");
     
     for (; yAxis > endy; yAxis+=elevGrid->cellsize){
         //printf("yAxis: (%d)\n", yAxis);
-        float intersectX;
+        float intersectXLong;
         if (slope == FLT_MAX){
-            intersectX = sunLong;
+            intersectXLong = sunLong;
         }
         else {
-            intersectX = (yAxis-intercept)/slope*-1;
+            intersectXLong = (yAxis-intercept)/slope*-1;
         }
         //float intersectX = (yAxis-intercept)/slope*-1;
         //printf("intersectX: (%f)\n", intersectX); fflush(stdout);
+        double intersectX = convertLongToJ(intersectXLong, elevGrid);
+        int intersectY = (int) convertLatToI(yAxis, elevGrid);
+        
         int h1x = ceil(intersectX);
         int h2x = floor(intersectX);
-        float elevH1 = elevGrid->data[yAxis][h1x];
+        float elevH1 = elevGrid->data[intersectY][h1x];
         //printf("Point 1 (%d, %d) elevation (%f)\n", yAxis, h1x, elevH1);
-        float elevH2 = elevGrid->data[yAxis][h2x];
+        float elevH2 = elevGrid->data[intersectY][h2x];
         //printf("Point 2 (%d, %d) elevation (%f)\n", yAxis, h2x, elevH2);
         float elevAngle;
         float elevDifference;
@@ -596,7 +611,7 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         //printf("Distance between original and intersect is (%f)\n", calculateDistance(vpi, vpj, yAxis, intersectX));
         //float angleOriginalIntersection = atan((fabs(originalHeight-intersectHeight))/calculateDistance(vpi, vpj, yAxis, intersectX));
         
-        double solarAngleIntersection = calcSunAngle(dayNum, localTime, convertIToLat(yAxis, elevGrid), intersectHeight, calculateDistance(sunLat, sunLong, yAxis, intersectX));
+        double solarAngleIntersection = calcSunAngle(dayNum, localTime, convertIToLat(intersectY, elevGrid), intersectHeight, calculateDistance(sunLat, sunLong, yAxis, intersectXLong));
         
         //If the Original Point is higher than the intersection point, the angle of elevation must be negative
         //printf("Original point's height (%f)\n", originalHeight);
@@ -629,7 +644,7 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
  *Compute the viewshed
  */
 void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone, double turbidity){
-    
+    printf("HELLO WORLD");
     for (; startTime < endTime; startTime += timeStep){
         //Initialize a new viewshed grid for each timestep
         Grid* viewshedGrid;
@@ -673,6 +688,7 @@ void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double 
         char nameBegin[] = "viewshed";
         char nameEnd[] = ".asc";
         sprintf(buf, "%s%f%s", nameBegin, startTime, nameEnd);
+        printf("%s \n", buf);
         writeFile(buf, viewshedGrid);
     }
 }
