@@ -19,7 +19,7 @@ typedef struct _grid {
 }Grid;
 
 //Computes whether (i,j) is visible from (vprow, vpcol)
-int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, double sunLat, double sunLong);
+int pointVisibleFromSun(Grid* elevGrid, double currentLat, double currentLong, int i, int j, double sunLat, double sunLong);
 
 //Compute the viewshed
 void computeViewshed(Grid* elevGrid, Grid* viewshedGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone);
