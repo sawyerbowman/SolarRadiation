@@ -19,6 +19,7 @@ int main(int argc, char** args){
     printf("%lf\n", sunLong);
     */
     
+    
     char *elevName, *energyName;
     
     if (argc != 9){
@@ -47,6 +48,7 @@ int main(int argc, char** args){
     //Initialize the elevGrid from the file
     Grid* elevGrid;
     elevGrid = readFile(elevName);
+    
     
     printHeader(elevGrid);
     

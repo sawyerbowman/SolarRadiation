@@ -359,7 +359,7 @@ double calcYIntersection(double slope, double intercept, double x){
  *Convert latitude to i (y)
  */
 double convertLatToI(double latitude, Grid* grid){
-    return (grid->rows) - ((latitude - grid->latitude)/(grid->cellsize));
+    return (grid->rows - 1) - ((latitude - grid->latitude)/(grid->cellsize));
 }
 
 /**
@@ -373,7 +373,7 @@ double convertLongToJ(double longitude, Grid* grid){
  *Convert i (y) to latitude
  */
 double convertIToLat(double i, Grid* grid){
-    return grid->latitude + grid->cellsize*(grid->rows-i);
+    return grid->latitude + grid->cellsize*(grid->rows-i-1);
 }
 
 /**
