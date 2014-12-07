@@ -22,8 +22,8 @@ double calcSunAngle(double dayNum, double localTime, double localLat, double ele
     double constTwo = calcConstantTwo(latRadian, sunDeclination);
     double hourAngle = calcHourAngle(localTime);
     double sunAngleRad = asin(constOne*cos(hourAngle) + constTwo);
-    double sunAngleDeg = convertToDegrees(sunAngleRad);
-    return angleHeightTransform(sunAngleDeg, distance, elevation);
+    double correctAngleRad = angleHeightTransform(sunAngleRad, distance, elevation);
+    return convertToDegrees(correctAngleRad);
 }
 
 /**
@@ -39,15 +39,17 @@ double calcSunLat(double dayNum){
  */
 
 double calcSunLong(double time, double offset){
-    return (time - offset)*(360/24);
+    int ut = ((int) time - (int) offset + 24) % 24;
+    return (ut - 12)*-360/24;
 }
 
 /**
  *Apply transformation of angle of elevation for point's elevation
  */
 
-double angleHeightTransform(double sunAngleDeg, double distance, double elevation){
-    return atan(tan(sunAngleDeg) - (elevation/distance));
+double angleHeightTransform(double sunAngle, double distance, double elevation){
+    double corrected = atan(tan(sunAngle) - (elevation/distance));
+    return corrected;
 }
 
 /**

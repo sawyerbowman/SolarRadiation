@@ -9,6 +9,8 @@
 #ifndef _viewshed_h
 #define _viewshed_h
 
+#define EARTH_RADIUS 6371000
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -54,6 +56,9 @@ float calculateSlope(float startx, float starty, float endx, float endy);
 
 //Calculate the distance between 2 given points
 float calculateDistance(float startx, float starty, float endx, float endy);
+
+//Calculate the haversine distance between 2 points
+double calcHaversine(double startx, double starty, double endx, double endy);
 
 //Replace sunLat, sunLong with intersection of line with edge of grid
 void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, double sunLong, double originalSlope, double originalIntercept);

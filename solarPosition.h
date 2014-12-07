@@ -29,7 +29,7 @@ double calcSunLat(double dayNum);
 double calcSunLong(double time, double offset);
 
 //Transform the elevation angle based on elevation of particular point
-double angleHeightTransform(double sunAngleDeg, double distance, double elevation);
+double angleHeightTransform(double sunAngle, double distance, double elevation);
 
 //Calculate day angle [rad]
 double calcDayAngle(double j);

@@ -11,6 +11,14 @@
 
 int main(int argc, char** args){
     
+    /*
+    double sunLong = calcSunLong(12, -5);
+    double sunLat = calcSunLat(340);
+    
+    printf("%lf\n", sunLat);
+    printf("%lf\n", sunLong);
+    */
+    
     char *elevName, *energyName;
     
     if (argc != 9){
