@@ -260,20 +260,20 @@ void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doub
     //TODO: These bits of code could be combined into function, have to account for changes though...
     //Determine if intersection with bottom grid border is correct
     double xOne = calcXIntersection(interceptOne, originalIntercept, originalSlope, slopeOne);
-    double yOne = calcYIntersection(originalSlope, originalIntercept, xOne);
+    //double yOne = calcYIntersection(originalSlope, originalIntercept, xOne);
     //In case slope is vertical, intersection with bottom line is bottom line lat, sun long
     if (originalSlope == FLT_MAX && sunLat < *endy){
         *endy = cornerOneLat;
         *endx = sunLong;
         return;
     }
-    else if (originalSlope < 0 && *endy >= yOne && *endx < xOne){
-        *endy = yOne;
+    else if (originalSlope < 0 && *endy >= cornerOneLat && *endx < xOne){
+        *endy = cornerOneLat;
         *endx = xOne;
         return;
     }
-    else if (originalSlope >= 0 && *endy >= yOne && *endx >= xOne){
-        *endy = yOne;
+    else if (originalSlope >= 0 && *endy >= cornerOneLat && *endx >= xOne){
+        *endy = cornerOneLat;
         *endx = xOne;
         return;
     }
@@ -287,33 +287,33 @@ void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doub
         *endx = cornerTwoLong;
         return;
     }
-    else if (originalSlope < 0 && *endy < yTwo && *endx >= xTwo){
+    else if (originalSlope < 0 && *endy < yTwo && *endx >= cornerTwoLong){
         *endy = yTwo;
-        *endx = xTwo;
+        *endx = cornerTwoLong;
         return;
     }
-    else if (originalSlope >= 0 && *endy >= yTwo && *endx >= xTwo){
+    else if (originalSlope >= 0 && *endy >= yTwo && *endx >= cornerTwoLong){
         *endy = yTwo;
-        *endx = xTwo;
+        *endx = cornerTwoLong;
         return;
     }
     
     //determine if intersection with top grid border is correct
     double xThree = calcXIntersection(interceptThree, originalIntercept, originalSlope, slopeThree);
-    double yThree = calcYIntersection(originalSlope, originalIntercept, xThree);
+    //double yThree = calcYIntersection(originalSlope, originalIntercept, xThree);
     //In case slope is vertical, intersection with top line is top line lat, sun long
     if (originalSlope == 0 && sunLong < *endx){
         *endy = cornerThreeLat;
         *endx = sunLong;
         return;
     }
-    else if (originalSlope < 0 && *endy <= yThree && *endx >= xThree){
-        *endy = yThree;
+    else if (originalSlope < 0 && *endy <= cornerThreeLat && *endx >= xThree){
+        *endy = cornerThreeLat;
         *endx = xThree;
         return;
     }
-    else if (originalSlope >= 0 && *endy <= yThree && *endx < xThree){
-        *endy = yThree;
+    else if (originalSlope >= 0 && *endy <= cornerThreeLat && *endx < xThree){
+        *endy = cornerThreeLat;
         *endx = xThree;
         return;
     }
@@ -327,14 +327,14 @@ void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doub
         *endx = cornerFourLong;
         return;
     }
-    else if (originalSlope < 0 && *endy >= yFour && *endx < xFour){
+    else if (originalSlope < 0 && *endy >= yFour && *endx < cornerFourLong){
         *endy = yFour;
-        *endx = xFour;
+        *endx = cornerFourLong;
         return;
     }
-    else if (originalSlope >= 0 && *endy < yFour && *endx < xFour){
+    else if (originalSlope >= 0 && *endy < yFour && *endx < cornerFourLong){
         *endy = yFour;
-        *endx = xFour;
+        *endx = cornerFourLong;
         return;
     }
 }
@@ -720,7 +720,7 @@ void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double 
                 }
                 
                 
-                if (i == 0 && j == 1){
+                if (i == 1 && j == 2){
                     printf("Test\n");
                 }
                 
