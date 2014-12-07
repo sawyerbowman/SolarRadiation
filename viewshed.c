@@ -226,10 +226,23 @@ double calcHaversine(double startx, double starty, double endx, double endy){
 }
 
 /**
- *Find end point that intersects with a particular edge of the grid
+ *Determine if the intersection coordinate is between two given points (latitude or longitude
+ */
+int isOnLine(double intersection, double cornerOne, double cornerTwo){
+    if (intersection >= cornerOne && intersection <= cornerTwo){
+        return 1;
+    }
+    return 0;
+}
+
+/**
+ *Find end point that intersects with a particular edge of the grid.
+ *Also returns an integer (1 for horizontal line intersection, 0 for
+ *vertical line intersection). This will help determined whether lat
+ *or long is off
  */
 
-void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, double sunLong, double originalSlope, double originalIntercept){
+int findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, double sunLong, double originalSlope, double originalIntercept){
     //Determine which grid edge the line running between the sun and current point
     //intersects first by calculating corners (starting at lower left and moving
     //clockwise
@@ -265,17 +278,17 @@ void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doub
     if (originalSlope == FLT_MAX && sunLat < *endy){
         *endy = cornerOneLat;
         *endx = sunLong;
-        return;
+        return 1;
     }
-    else if (originalSlope < 0 && *endy >= cornerOneLat && *endx < xOne){
+    else if (originalSlope < 0 && *endy >= cornerOneLat && *endx < xOne && isOnLine(xOne, cornerOneLong, cornerFourLong) == 1){
         *endy = cornerOneLat;
         *endx = xOne;
-        return;
+        return 1;
     }
-    else if (originalSlope >= 0 && *endy >= cornerOneLat && *endx >= xOne){
+    else if (originalSlope >= 0 && *endy >= cornerOneLat && *endx >= xOne && isOnLine(xOne, cornerOneLong, cornerFourLong) == 1){
         *endy = cornerOneLat;
         *endx = xOne;
-        return;
+        return 1;
     }
     
     //determine if intersection with left grid border is correct
@@ -285,17 +298,17 @@ void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doub
     if (originalSlope == 0 && sunLong < *endx){
         *endy = sunLat;
         *endx = cornerTwoLong;
-        return;
+        return 0;
     }
-    else if (originalSlope < 0 && *endy < yTwo && *endx >= cornerTwoLong){
+    else if (originalSlope < 0 && *endy < yTwo && *endx >= cornerTwoLong && isOnLine(yTwo, cornerOneLat, cornerTwoLat) == 1){
         *endy = yTwo;
         *endx = cornerTwoLong;
-        return;
+        return 0;
     }
-    else if (originalSlope >= 0 && *endy >= yTwo && *endx >= cornerTwoLong){
+    else if (originalSlope >= 0 && *endy >= yTwo && *endx >= cornerTwoLong && isOnLine(yTwo, cornerOneLat, cornerTwoLat) == 1){
         *endy = yTwo;
         *endx = cornerTwoLong;
-        return;
+        return 0;
     }
     
     //determine if intersection with top grid border is correct
@@ -305,17 +318,17 @@ void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doub
     if (originalSlope == 0 && sunLong < *endx){
         *endy = cornerThreeLat;
         *endx = sunLong;
-        return;
+        return 1;
     }
-    else if (originalSlope < 0 && *endy <= cornerThreeLat && *endx >= xThree){
+    else if (originalSlope < 0 && *endy <= cornerThreeLat && *endx >= xThree && isOnLine(xThree, cornerTwoLong, cornerThreeLong) == 1){
         *endy = cornerThreeLat;
         *endx = xThree;
-        return;
+        return 1;
     }
-    else if (originalSlope >= 0 && *endy <= cornerThreeLat && *endx < xThree){
+    else if (originalSlope >= 0 && *endy <= cornerThreeLat && *endx < xThree && isOnLine(xThree, cornerTwoLong, cornerThreeLong) == 1){
         *endy = cornerThreeLat;
         *endx = xThree;
-        return;
+        return 1;
     }
     
     //determine if intersection with right grid border is correct
@@ -325,18 +338,19 @@ void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doub
     if (originalSlope == 0 && sunLong < *endx){
         *endy = sunLat;
         *endx = cornerFourLong;
-        return;
+        return 0;
     }
-    else if (originalSlope < 0 && *endy >= yFour && *endx < cornerFourLong){
+    else if (originalSlope < 0 && *endy >= yFour && *endx < cornerFourLong && isOnLine(yFour, cornerFourLat, cornerThreeLat) == 1){
         *endy = yFour;
         *endx = cornerFourLong;
-        return;
+        return 0;
     }
-    else if (originalSlope >= 0 && *endy < yFour && *endx < cornerFourLong){
+    else if (originalSlope >= 0 && *endy < yFour && *endx < cornerFourLong && isOnLine(yFour, cornerFourLat, cornerThreeLat) == 1){
         *endy = yFour;
         *endx = cornerFourLong;
-        return;
+        return 0;
     }
+    return 0;
 }
 
 /**
@@ -453,7 +467,7 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         newY = endy;
     }
     
-    findNewEndPoint(elevGrid, &newX, &newY, sunLat, sunLong, slope, intercept);
+    int isHorizontal = findNewEndPoint(elevGrid, &newX, &newY, sunLat, sunLong, slope, intercept);
     
     if (endx == sunLong && endy == sunLat){
         endx = newX;
@@ -466,7 +480,13 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     
     //xAxis is the variable that is incremented by 1 unit each time
     //It represents the intersection point's x (longitude) value
-    double xAxis = startx+elevGrid->cellsize;
+    double xAxis = startx;//+elevGrid->cellsize;
+    //Account for intersection point not falling on longitude line in grid
+    if (isHorizontal == 1){
+        double jForX = convertLongToJ(xAxis, elevGrid);
+        double jCorrected = ceil(jForX);
+        xAxis = convertJToLong(jCorrected, elevGrid);
+    }
     
     //printf("X Checks\n");
     
@@ -589,7 +609,7 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         newY = endy;
     }
     
-    findNewEndPoint(elevGrid, &newX, &newY, sunLat, sunLong, slope, intercept);
+    isHorizontal = findNewEndPoint(elevGrid, &newX, &newY, sunLat, sunLong, slope, intercept);
     
     if (endx == sunLong && endy == sunLat){
         endx = newX;
@@ -606,7 +626,12 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     
     //The process below is similar to that above, except the y is incremented
     //and the intersections point's x value is calculated
-    double yAxis = starty+elevGrid->cellsize;
+    double yAxis = starty; //elevGrid->cellsize;
+    if (isHorizontal == 0){
+        double iForY = convertLatToI(yAxis, elevGrid);
+        double iCorrected = floor(iForY);
+        yAxis = convertIToLat(iCorrected, elevGrid);
+    }
     
     //printf("Y Checks\n");
     
@@ -720,7 +745,7 @@ void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double 
                 }
                 
                 
-                if (i == 1 && j == 2){
+                if (i == 0 && j == 1){
                     printf("Test\n");
                 }
                 

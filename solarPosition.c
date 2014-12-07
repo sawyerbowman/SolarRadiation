@@ -27,11 +27,13 @@ double calcSunAngle(double dayNum, double localTime, double localLat, double ele
 }
 
 /**
- *Calculate latitude of position directly under sun. Returns in degrees.
+ *Calculate latitude of position directly under sun. Returns in degrees. (Use declination as latitude, more accurate)
  */
 
 double calcSunLat(double dayNum){
-    return TROPIC_LAT*cos((dayNum-JUNE_21)/(365.25/(2*M_PI)));
+    double dayAngle = calcDayAngle(dayNum);
+    return convertToDegrees(calcSunDeclination(dayAngle));
+    //return TROPIC_LAT*cos((dayNum-JUNE_21)/(365.25/(2*M_PI)));
 }
 
 /**

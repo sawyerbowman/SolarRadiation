@@ -61,7 +61,7 @@ float calculateDistance(float startx, float starty, float endx, float endy);
 double calcHaversine(double startx, double starty, double endx, double endy);
 
 //Replace sunLat, sunLong with intersection of line with edge of grid
-void findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, double sunLong, double originalSlope, double originalIntercept);
+int findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, double sunLong, double originalSlope, double originalIntercept);
 
 //Calculate x coordinate of intersection between two lines
 double calcXIntersection(double interceptB, double interceptA, double slopeA, double slopeB);
@@ -80,5 +80,8 @@ double convertIToLat(double i, Grid* grid);
 
 //Convert j coordinate to longitude
 double convertJToLong(double j, Grid* grid);
+
+//Determine if intersection coordinate is located on line between two corners of grid
+int isOnLine(double intersection, double cornerOne, double cornerTwo);
 
 #endif
