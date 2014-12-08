@@ -482,6 +482,9 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         double jCorrected = ceil(jForX);
         xAxis = convertJToLong(jCorrected, elevGrid);
     }
+    
+    //Calculate the angle of elevation between the new point and the sun
+    double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i, elevGrid), newHeight, calcHaversine(sunLong, sunLat, currentLong, currentLat));
 
     xAxis += elevGrid->cellsize;
     
@@ -492,8 +495,14 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         if (fabs(xAxis-endx) < ERROR){
             break;
         }
-        //intersectY represents the intersection point's y (latitude) value (needs to be inverted)
-        float intersectYLat = (slope*xAxis) + intercept;
+        //intersectY represents the intersection point's y (latitude) values
+        float intersectYLat;
+        if (slope == 0){
+            intersectYLat = sunLat;
+        }
+        else {
+            intersectYLat = (slope*xAxis) + intercept;
+        }
         
         double intersectY = convertLatToI(intersectYLat, elevGrid);
         int intersectX = (int) convertLongToJ(xAxis, elevGrid);
@@ -531,14 +540,14 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         //Calculate the angle of elevation between the interpolated point and the sun
         double solarAngleIntersection = calcSunAngle(dayNum, localTime, convertIToLat(intersectY, elevGrid), intersectHeight, calcHaversine(sunLong, sunLat, xAxis, intersectYLat));
         //Calculate the angle of elevation between the new point and the sun
-        double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i, elevGrid), newHeight, calcHaversine(sunLong, sunLat, currentLong, currentLat));
+        //double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i, elevGrid), newHeight, calcHaversine(sunLong, sunLat, currentLong, currentLat));
         
         //Compare the angle of elevations of the sun and the new point and the sun and the interpolated point
         //If the angle of elevation between the sun and the intersect point is less
         //than the angle of elevation between the sun and the new point, the view path
         //is obstructed
         if (solarAngleIntersection < solarAngleNew){
-            energyGrid->data[i][j] += calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 0);
+            energy = calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 0);
             return 0;
         }
     }
@@ -663,27 +672,25 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         //Calculate the angle of elevation between the interpolated point and the sun
         double solarAngleIntersection = calcSunAngle(dayNum, localTime, convertIToLat(intersectY, elevGrid), intersectHeight, calcHaversine(sunLong, sunLat, intersectXLong, yAxis));
         //Calculate the angle of elevation between the new point and the sun
-        double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i, elevGrid), newHeight, calcHaversine(sunLong, sunLat, currentLong, currentLat));
+        //double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i, elevGrid), newHeight, calcHaversine(sunLong, sunLat, currentLong, currentLat));
         
         //Compare the angle of elevations of the sun and the new point and the sun and the interpolated point
         //If the angle of elevation between the sun and the intersect point is less
         //than the angle of elevation between the sun and the new point, the view path
         //is obstructed
         if (solarAngleIntersection < solarAngleNew){
-            energyGrid->data[i][j] += calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 0);
+            energy = calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 0);
             return 0;
         }
-        energy = calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 1);
     }
-    //If energy has not been calculated yet (result of no interpolation), calculate it
+    //If energy has not been calculated yet (is visible or no interpolation), calculate it
     if (energy == 0){
-        double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i, elevGrid), newHeight, calcHaversine(sunLong, sunLat, currentLong, currentLat));
         energy = calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 1);
     }
     
     //Calculate length of single cell in meters
     double cellLength = calcHaversine(elevGrid->longitude, elevGrid->latitude, elevGrid->longitude+elevGrid->cellsize, elevGrid->latitude);
-    //Calculate the energy in Joules over the timestep (assume irradiance is constant over timestep)
+    //Calculate the energy in GigaJoules over the timestep (assume irradiance is constant over timestep)
     double energyGigaJoules = calcGigaJoulesOverTimeStep(energy, cellLength*cellLength, convertTimestepToSeconds(timeStep));
     //Add to the energy grid
     energyGrid->data[i][j] += energyGigaJoules;
