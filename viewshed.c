@@ -220,7 +220,7 @@ double calcHaversine(double startx, double starty, double endx, double endy){
     double deltaLong = long2Rad-long1Rad;
     double deltaLat = lat2Rad-lat1Rad;
     
-    double a = sin(deltaLat/2) * sin(deltaLat/2) + cos(lat1Rad) * cos(lat2Rad) * sin(deltaLong/2);
+    double a = sin(deltaLat/2) * sin(deltaLat/2) + cos(lat1Rad) * cos(lat2Rad) * sin(deltaLong/2) * sin(deltaLong/2);
     double c = 2 * atan2(sqrt(a), sqrt(1-a));
     return EARTH_RADIUS * c;
 }
@@ -485,6 +485,9 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     
     //Calculate the angle of elevation between the new point and the sun
     double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i, elevGrid), newHeight, calcHaversine(sunLong, sunLat, currentLong, currentLat));
+    
+    //Calculate length of single cell in meters
+    double cellLength = calcHaversine(elevGrid->longitude, elevGrid->latitude, elevGrid->longitude+elevGrid->cellsize, elevGrid->latitude);
 
     xAxis += elevGrid->cellsize;
     
@@ -547,7 +550,7 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         //than the angle of elevation between the sun and the new point, the view path
         //is obstructed
         if (solarAngleIntersection < solarAngleNew){
-            energy = calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 0);
+            energyGrid->data[i][j] += calcGigaJoulesOverTimeStep(calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 0), cellLength*cellLength, convertTimestepToSeconds(timeStep));
             return 0;
         }
     }
@@ -679,7 +682,7 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         //than the angle of elevation between the sun and the new point, the view path
         //is obstructed
         if (solarAngleIntersection < solarAngleNew){
-            energy = calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 0);
+            energyGrid->data[i][j] += calcGigaJoulesOverTimeStep(calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 0), cellLength*cellLength, convertTimestepToSeconds(timeStep));
             return 0;
         }
     }
@@ -688,8 +691,6 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         energy = calcGlobalIrradiance(newHeight, turbidity, dayNum, solarAngleNew, 1);
     }
     
-    //Calculate length of single cell in meters
-    double cellLength = calcHaversine(elevGrid->longitude, elevGrid->latitude, elevGrid->longitude+elevGrid->cellsize, elevGrid->latitude);
     //Calculate the energy in GigaJoules over the timestep (assume irradiance is constant over timestep)
     double energyGigaJoules = calcGigaJoulesOverTimeStep(energy, cellLength*cellLength, convertTimestepToSeconds(timeStep));
     //Add to the energy grid
@@ -710,35 +711,35 @@ void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double 
         //calculate lat and long of position directly under sun
         double sunLat = calcSunLat(dayNum);
         double sunLong = calcSunLong(startTime, timeZone);
-        int i, j;
+        
+        pthread_t thread[elevGrid->rows];
+        struct ThreadData data[elevGrid->rows];
+        
+        int i = 0;
         for (i = 0; i < elevGrid->rows; i++){
-            printf("%d\n", i);
-            for (j = 0; j < elevGrid->cols; j++){
-                //Calculate lat and long of current cell from bottom left corner of grid
-                double currentLat = convertIToLat(i, elevGrid);
-                double currentLong = convertJToLong(j, elevGrid);
-                
-                if (viewshedGrid->data[i][j] == viewshedGrid->noDataValue){
-                    viewshedGrid->data[i][j] = 0;
-                    continue;
-                }
-                //see if visible (if point directly under sun), if yes set appropriate cell to 1
-                if (currentLat == sunLat && currentLong == sunLong){
-                    viewshedGrid->data[i][j] = 1;
-                    continue;
-                }
-                
-                //Finally, determine if point is visible via interpolation
-                int visible = pointVisibleFromSun(elevGrid, energyGrid, currentLat, currentLong, i, j, sunLat, sunLong, dayNum, startTime, turbidity, timeStep);
-                
-                if (visible == 1){
-                    viewshedGrid->data[i][j] = 1;
-                }
-                else {
-                    viewshedGrid->data[i][j] = 0;
-                }
-            }
+            data[i].elevGrid = elevGrid;
+            data[i].viewshedGrid = viewshedGrid;
+            data[i].energyGrid = energyGrid;
+            data[i].startTime = startTime;
+            data[i].endTime = endTime;
+            data[i].timeStep = timeStep;
+            data[i].dayNum = dayNum;
+            data[i].timeZone = timeZone;
+            data[i].turbidity = turbidity;
+            data[i].sunLat = sunLat;
+            data[i].sunLong = sunLong;
+            data[i].i = i;
+            //viewshedLoops(&data[i]);
         }
+        
+        for (i=0; i<elevGrid->rows; i++) {
+            pthread_create(&thread[i], NULL, viewshedLoops, &data[i]);
+        }
+        
+        for (i=0; i<elevGrid->rows; i++) {
+            pthread_join(thread[i], NULL);
+        }
+        
         //Create unique name for new viewshed and write to that file
         char buf[100];
         char nameBegin[] = "viewshed";
@@ -747,3 +748,38 @@ void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double 
         writeFile(buf, viewshedGrid);
     }
 }
+
+void* viewshedLoops(struct ThreadData* data){
+    int j, threadId;
+    //for (i = 0; i < elevGrid->rows; i++){
+        printf("%d\n", data->i);
+        
+        for (j = 0; j < data->elevGrid->cols; j++){
+            //Calculate lat and long of current cell from bottom left corner of grid
+            double currentLat = convertIToLat(data->i, data->elevGrid);
+            double currentLong = convertJToLong(j, data->elevGrid);
+            
+            if (data->viewshedGrid->data[data->i][j] == data->viewshedGrid->noDataValue){
+                data->viewshedGrid->data[data->i][j] = 0;
+                continue;
+            }
+            //see if visible (if point directly under sun), if yes set appropriate cell to 1
+            if (currentLat == data->sunLat && currentLong == data->sunLong){
+                data->viewshedGrid->data[data->i][j] = 1;
+                continue;
+            }
+            
+            //Finally, determine if point is visible via interpolation
+            int visible = pointVisibleFromSun(data->elevGrid, data->energyGrid, currentLat, currentLong, data->i, j, data->sunLat, data->sunLong, data->dayNum, data->startTime, data->turbidity, data->timeStep);
+            
+            if (visible == 1){
+                data->viewshedGrid->data[data->i][j] = 1;
+            }
+            else {
+                data->viewshedGrid->data[data->i][j] = 0;
+            }
+        }
+    return NULL;
+    //}
+}
+

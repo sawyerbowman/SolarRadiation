@@ -18,6 +18,8 @@
 #include <string.h>
 #include <math.h>
 #include <float.h>
+//#include <omp.h>
+#include <pthread.h>
 #include "viewshed.h"
 #include "solarPosition.h"
 #include "irradiance.h"
@@ -31,11 +33,22 @@ typedef struct _grid {
   float** data;
 }Grid;
 
+typedef struct ThreadData {
+    Grid* elevGrid;
+    Grid* viewshedGrid;
+    Grid* energyGrid;
+    double startTime, endTime, timeStep, dayNum, timeZone, turbidity, sunLat, sunLong;
+    int i;
+}ThreadData;
+
 //Computes whether (i,j) is visible from (vprow, vpcol)
 int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, double currentLong, int i, int j, double sunLat, double sunLong, double dayNum, double localTime, double turbidity, double timeStep);
 
 //Compute the viewshed
 void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone, double turbidity);
+
+//Parallelizable viewshed computations
+void* viewshedLoops(struct ThreadData* data);
 
 //Reads information (terrain) from a given file
 Grid* readFile(char* name);
