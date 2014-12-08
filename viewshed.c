@@ -443,6 +443,9 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     if (slope == FLT_MAX){
         intercept = FLT_MAX;
     }
+    else if (endx == sunLong) {
+        intercept = starty - (slope*startx);
+    }
     else {
         intercept = endy - (slope*endx);
     }
@@ -472,18 +475,21 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     //xAxis is the variable that is incremented by 1 unit each time
     //It represents the intersection point's x (longitude) value
     double xAxis = startx;
+    
     //Account for intersection point not falling on longitude line in grid
     if (isHorizontal == 1){
         double jForX = convertLongToJ(xAxis, elevGrid);
         double jCorrected = ceil(jForX);
         xAxis = convertJToLong(jCorrected, elevGrid);
     }
+
+    xAxis += elevGrid->cellsize;
     
     //printf("X Checks\n");
     
     for (; xAxis < endx; xAxis+=elevGrid->cellsize){
         //If the difference is not significant enough, break out of loop
-        if (fabs(xAxis-endx) > .0000000000001){
+        if (fabs(xAxis-endx) < ERROR){
             break;
         }
         //intersectY represents the intersection point's y (latitude) value (needs to be inverted)
@@ -561,6 +567,9 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     if (slope == FLT_MAX){
         intercept = FLT_MAX;
     }
+    else if (endx == sunLong) {
+        intercept = starty - (slope*startx);
+    }
     else {
         intercept = endy - (slope*endx);
     }
@@ -597,13 +606,15 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         yAxis = convertIToLat(iCorrected, elevGrid);
     }
     
+    //yAxis += elevGrid->cellsize;
+    
     //Interpolate for y (latitude)
     //The process below is similar to that above, except the y (latitude) is incremented
     //and the intersection point's x value (longitude) is calculated
     
     for (; yAxis < endy; yAxis+=elevGrid->cellsize){
         //If the difference is not significant enough, break out of loop
-        if (fabs(yAxis-endy) > .0000000000001){
+        if (fabs(yAxis-endy) < ERROR){
             break;
         }
         
@@ -694,6 +705,7 @@ void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double 
         double sunLong = calcSunLong(startTime, timeZone);
         int i, j;
         for (i = 0; i < elevGrid->rows; i++){
+            printf("%d\n", i);
             for (j = 0; j < elevGrid->cols; j++){
                 //Calculate lat and long of current cell from bottom left corner of grid
                 double currentLat = convertIToLat(i, elevGrid);

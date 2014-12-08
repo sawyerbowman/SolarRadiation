@@ -10,6 +10,7 @@
 #define _viewshed_h
 
 #define EARTH_RADIUS 6371000
+#define ERROR .00000000001
 
 #include <stdio.h>
 #include <stdlib.h>
