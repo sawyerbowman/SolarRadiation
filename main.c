@@ -19,7 +19,7 @@ int main(int argc, char** args){
                "a start time (ex 12.5 for 12:30 p.m.), "
                "an end time (ex 17 for 5:00 p.m.), "
                "a step size for time increments (ex 2.5 for 2.5 hours), "
-               ", a day number (ex 1 for Jan 1), "
+               "a day number (ex 1 for Jan 1), "
                "a UTC time zone offset (ex -5 for EST), "
                "and a turbidity value from the SODA database (ex 2.2, assume uniform across grid.\n");
         return 0;

@@ -128,6 +128,7 @@ void isDayLightSavings(double* beginTime, double* endTime) {
         else {
             printf("Invalid entry!\n");
         }
+        flush();
     }
     
     if (dayLightSavings == 'Y'){
@@ -139,6 +140,7 @@ void isDayLightSavings(double* beginTime, double* endTime) {
 /**
  *Convert a given time to daylight savings
  */
+
 void convertTime(double* time){
     *time = (*time+1);
     if (*time == 24){
@@ -146,4 +148,15 @@ void convertTime(double* time){
     }
 }
 
+/**
+ *Flush out line of input
+ */
+
+void flush() {
+    char ch;
+    ch = getchar();
+    while( ch != '\n' ){
+        ch = getchar();
+    }
+}
 

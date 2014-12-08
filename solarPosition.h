@@ -59,5 +59,8 @@ void isDayLightSavings(double* beginTime, double* endTime);
 //Convert time by springing forward to normal time
 void convertTime(double* time);
 
+//Flush out user input
+void flush();
+
 #endif
 
