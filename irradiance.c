@@ -32,18 +32,20 @@ double convertTimestepToSeconds(double timeStep){
  */
 
 double calcGlobalIrradiance(double elevation, double turbidity, double dayNum, double sunAngle, int visible){
+    //convert sunAngle back into radians for calculations
+    double sunAngleRad = convertToRadians(sunAngle);
     /*
      *If square is in shadow, it can't have beam irradiance. Regardless of shadow, diffuse
      *irradiance will touch the square.
      */
     double beam, diffuse;
     if (visible == 1){
-        beam = beamIrradiance(elevation, turbidity, dayNum, sunAngle);
+        beam = beamIrradiance(elevation, turbidity, dayNum, sunAngleRad);
     }
     else {
         beam = 0;
     }
-    diffuse = diffuseIrradiance(sunAngle, turbidity, dayNum);
+    diffuse = diffuseIrradiance(sunAngleRad, turbidity, dayNum);
 
     return beam + diffuse;
 }

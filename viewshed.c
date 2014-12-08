@@ -482,6 +482,10 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     //printf("X Checks\n");
     
     for (; xAxis < endx; xAxis+=elevGrid->cellsize){
+        //If the difference is not significant enough, break out of loop
+        if (fabs(xAxis-endx) > .0000000000001){
+            break;
+        }
         //intersectY represents the intersection point's y (latitude) value (needs to be inverted)
         float intersectYLat = (slope*xAxis) + intercept;
         
@@ -598,6 +602,11 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     //and the intersection point's x value (longitude) is calculated
     
     for (; yAxis < endy; yAxis+=elevGrid->cellsize){
+        //If the difference is not significant enough, break out of loop
+        if (fabs(yAxis-endy) > .0000000000001){
+            break;
+        }
+        
         //intersectX represents the intersection point's x (longitude) value
         float intersectXLong;
         if (slope == FLT_MAX){
