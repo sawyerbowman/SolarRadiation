@@ -10,6 +10,23 @@
 #include "solarPosition.h"
 
 /**
+ *Convert W/m^2 to total GigaJoules per timestep (assume irradiance is constant over timestep)
+ */
+
+double calcGigaJoulesOverTimeStep(double irradiance, double cellSizeSquared, double timeInSeconds){
+    double watts = irradiance*cellSizeSquared;
+    return watts*timeInSeconds*(1*pow(10, -9));
+}
+
+/**
+ *Convert timestep to seconds
+ */
+
+double convertTimestepToSeconds(double timeStep){
+    return timeStep*60*60;
+}
+
+/**
  *This method uses both beam and diffuse irradiance to calculate
  *the global irradiance
  */

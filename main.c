@@ -11,20 +11,17 @@
 
 int main(int argc, char** args){
     
-    /*
-    double sunLong = calcSunLong(12, -5);
-    double sunLat = calcSunLat(340);
-    
-    printf("%lf\n", sunLat);
-    printf("%lf\n", sunLong);
-    */
-    
-    
     char *elevName, *energyName;
     
     if (argc != 9){
-        printf("Enter a filename to read into the program, a filename to store the output, and"
-               "three numbers representing a start time, end time, and step size for time increments.\n");
+        printf("Enter a filename to read into the program (ex maine.asc), "
+               "a filename to store the output (ex maine_energy.asc), "
+               "a start time (ex 12.5 for 12:30 p.m.), "
+               "an end time (ex 17 for 5:00 p.m.), "
+               "a step size for time increments (ex 2.5 for 2.5 hours), "
+               ", a day number (ex 1 for Jan 1), "
+               "a UTC time zone offset (ex -5 for EST), "
+               "and a turbidity value from the SODA database (ex 2.2, assume uniform across grid.\n");
         return 0;
     }
     
@@ -45,10 +42,15 @@ int main(int argc, char** args){
     printf("%f\n", timeZone);
     printf("%f\n", turbidity);
     
+    //TODO: If it is dark during the time interval, ask user to input times in the day
+    
+    
+    //Ask if daylight savings time, recalculate start and end time accordingly
+    isDayLightSavings(&beginTime, &endTime);
+    
     //Initialize the elevGrid from the file
     Grid* elevGrid;
     elevGrid = readFile(elevName);
-    
     
     printHeader(elevGrid);
     
@@ -57,9 +59,6 @@ int main(int argc, char** args){
     energyGrid = gridInit(elevGrid);
     
     computeViewshed(elevGrid, energyGrid, beginTime, endTime, timeStep, dayNum, timeZone, turbidity);
-    
-    //printHeader(viewshedGrid);
-    //printValues(viewshedGrid);
     
     //Save the viewshed grid to the specified file
     writeFile(energyName, energyGrid);

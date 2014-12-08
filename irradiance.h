@@ -19,9 +19,20 @@
 #include <float.h>
 
 /**
+ *These methods help compute the energy in GigaJoules over a timestep
+ */
+
+//Calculate the gigajoules for a time step given irradiance, cellSizeSquared, and time in seconds
+double calcGigaJoulesOverTimeStep(double irradiance, double cellSizeSquared, double timeInSeconds);
+
+//Convert the timestep to seconds
+double convertTimestepToSeconds(double timeStep);
+
+/**
  *This method returns the global irradiance
  */
 
+//Calculate the global irradiance
 double calcGlobalIrradiance(double elevation, double turbidity, double dayNum, double sunAngle, int visible);
 
 /**

@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <ctype.h>
 #include <math.h>
 #include <float.h>
 
@@ -51,6 +52,12 @@ double convertToDegrees(double radian);
 
 //Convert to radians
 double convertToRadians(double degree);
+
+//Determine if it is daylight savings, and recalculate given time
+void isDayLightSavings(double* beginTime, double* endTime);
+
+//Convert time by springing forward to normal time
+void convertTime(double* time);
 
 #endif
 

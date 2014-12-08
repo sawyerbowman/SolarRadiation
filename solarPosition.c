@@ -109,3 +109,41 @@ double convertToDegrees(double radian){
 double convertToRadians(double degree){
     return degree*(M_PI/180);
 }
+
+/**
+ *Determine if it is daylight savings, and recalculate beginTime and endTime
+ */
+
+void isDayLightSavings(double* beginTime, double* endTime) {
+    char dayLightSavings = 'N';
+    
+    int valid = 0;
+    while (valid == 0){
+        printf ("Is it daylight savings time? [Y/N]: ");
+        scanf("%c", &dayLightSavings);
+        dayLightSavings = toupper(dayLightSavings);
+        if((dayLightSavings == 'Y') || (dayLightSavings == 'N')) {
+            valid = 1;
+        }
+        else {
+            printf("Invalid entry!\n");
+        }
+    }
+    
+    if (dayLightSavings == 'Y'){
+        convertTime(beginTime);
+        convertTime(endTime);
+    }
+}
+
+/**
+ *Convert a given time to daylight savings
+ */
+void convertTime(double* time){
+    *time = (*time+1);
+    if (*time == 24){
+        *time = 0;
+    }
+}
+
+
