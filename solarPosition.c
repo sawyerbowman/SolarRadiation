@@ -9,6 +9,39 @@
 #include "solarPosition.h"
 
 /**
+ *Calculate the time of the sunrise
+ */
+
+double calcSunriseOrSunset(double latitude, double longitude, double dayNum, double hour, int sunrise){
+    double latRad = convertToRadians(latitude);
+    double longRad = convertToRadians(longitude);
+    double dayAngle = calcDayAngle(dayNum);
+    double declination = calcSunDeclination(dayAngle);
+
+    double hourAngle = convertToDegrees(acos((cos(convertToRadians(90.83))/(cos(latRad)*cos(longRad))) - tan(latRad)*tan(declination)));
+    double angle = hourAngle/15;
+    if (sunrise == 1){
+        angle *= -1;
+    }
+
+    return 12 + angle;
+}
+
+/**
+ *Make sure the begin time and end time are within the sunrise and sunset range
+ */
+
+int isInDark(double sunrise, double sunset, double beginTime, double endTime){
+    if (beginTime < sunrise || endTime > sunset){
+        return 1;
+    }
+    else if (endTime <= beginTime){
+        return 1;
+    }
+    return 0;
+}
+
+/**
  *Calculate the angle between sun path and horizontal surface
  *Assume localLat is in degrees (most common form of latitude).
  *Must convert to radians. Returns in degrees.

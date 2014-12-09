@@ -20,6 +20,12 @@
 #include <math.h>
 #include <float.h>
 
+//Calculate the time of the sunrise
+double calcSunriseOrSunset(double latitude, double longitude, double dayNum, double hour, int sunrise);
+
+//Determine whether the begin time and end time are within the bounds of sunrise and sunset
+int isInDark(double sunrise, double sunset, double beginTime, double endTime);
+
 //Calculate the angle between sun path and horizontal surface
 double calcSunAngle(double dayNum, double localTime, double localLat, double elevation, double distance);
 

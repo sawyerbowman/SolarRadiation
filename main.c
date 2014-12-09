@@ -42,15 +42,21 @@ int main(int argc, char** args){
     printf("%f\n", timeZone);
     printf("%f\n", turbidity);
     
-    //TODO: If it is dark during the time interval, ask user to input times in the day
-    
-    
     //Ask if daylight savings time, recalculate start and end time accordingly
     isDayLightSavings(&beginTime, &endTime);
     
     //Initialize the elevGrid from the file
     Grid* elevGrid;
     elevGrid = readFile(elevName);
+    
+    //If it is dark during the time interval, ask user to input times in the day
+    double sunrise = calcSunriseOrSunset(elevGrid->latitude, elevGrid->longitude, dayNum, beginTime, 1);
+    double sunset = calcSunriseOrSunset(elevGrid->latitude, elevGrid->longitude, dayNum, beginTime, 0);
+    
+    if (isInDark(sunrise, sunset, beginTime, endTime) == 1){
+        printf("Please enter a begin time and an end time that occur during daylight"
+               "(after the sun rises at %lf and before the sun sets at %lf\n", sunrise, sunset);
+    }
     
     printHeader(elevGrid);
     
@@ -62,4 +68,5 @@ int main(int argc, char** args){
     
     //Save the viewshed grid to the specified file
     writeFile(energyName, energyGrid);
+    
 }
