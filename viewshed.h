@@ -25,12 +25,12 @@
 #include "irradiance.h"
 
 typedef struct _grid {
-  //The size of the grid and other header properties
+    //The size of the grid and other header properties
     int rows, cols;
     double longitude, latitude, cellsize, noDataValue;
-  
-  //The 2D array of values in the grid
-  float** data;
+    
+    //The 2D array of values in the grid
+    float** data;
 }Grid;
 
 typedef struct ThreadData {
