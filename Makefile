@@ -1,6 +1,7 @@
 
 CC = gcc
 CFLAGS = -g -pg
+LDFLAGS = -lm -pthread
 
 default:	main
 

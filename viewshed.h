@@ -41,7 +41,7 @@ typedef struct ThreadData {
     Grid* viewshedGrid;
     Grid* energyGrid;
     double startTime, endTime, timeStep, dayNum, timeZone, turbidity, sunLat, sunLong;
-    int i;
+    int i, endi;
 }ThreadData;
 
 //Computes whether (i,j) is visible from (vprow, vpcol)
