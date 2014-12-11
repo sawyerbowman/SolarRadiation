@@ -198,16 +198,21 @@ void createOrderedGrid(int rows, int cols, double longitude, double latitude, do
     for (i = 0; i < rows; i++){
         data[i] = (float*)malloc(cols*sizeof(float));
     }
-    float temp = minValue;
+    
     for (i = 0; i < rows; i++){
         for (j = 0; j < cols; j++){
-            data[i][j] = temp;
-        }
-        if (temp > maxValue){
-            temp *= .5;
-        }
-        else {
-            temp *= 5;
+            if (rows/2 == i && cols/2 == j){
+                data[i][j] = maxValue;
+            }
+            else if (rows/2 == i && cols/2-1 == j){
+                data[i][j] = maxValue;
+            }
+            else if (rows/2 == i && cols/2+1 == j){
+                data[i][j] = maxValue;
+            }
+            else {
+                data[i][j] = minValue;
+            }
         }
     }
     

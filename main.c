@@ -11,7 +11,7 @@
 
 int main(int argc, char** args){
     
-    createOrderedGrid(500, 20, -75, 40, .00083333333333333, -9999, 1, 10000);
+    //createOrderedGrid(200, 200, -75, 40, .00083333333333333, -9999, 1, 10000);
 
     char *elevName, *energyName;
     
