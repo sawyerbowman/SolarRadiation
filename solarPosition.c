@@ -147,7 +147,8 @@ double convertToRadians(double degree){
  *Determine if it is daylight savings, and recalculate beginTime and endTime
  */
 
-void isDayLightSavings(double* beginTime, double* endTime) {
+void isDayLightSavings(double* beginTime, double* endTime, int daylightSavings) {
+    /*
     char dayLightSavings = 'N';
     
     int valid = 0;
@@ -163,8 +164,11 @@ void isDayLightSavings(double* beginTime, double* endTime) {
         }
         flush();
     }
+     */
     
-    if (dayLightSavings == 'Y'){
+    //Use arg parameter instead of asking user
+    
+    if (daylightSavings == 1){
         convertTime(beginTime);
         convertTime(endTime);
     }

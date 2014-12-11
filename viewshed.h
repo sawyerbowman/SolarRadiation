@@ -48,7 +48,7 @@ typedef struct ThreadData {
 int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, double currentLong, int i, int j, double sunLat, double sunLong, double dayNum, double localTime, double turbidity, double timeStep);
 
 //Compute the viewshed
-void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone, double turbidity);
+void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone, double turbidity, int numThreads);
 
 //Parallelizable viewshed computations
 void* viewshedLoops(struct ThreadData* data);
@@ -79,6 +79,9 @@ double calcHaversine(double startx, double starty, double endx, double endy);
 
 //Replace sunLat, sunLong with intersection of line with edge of grid
 int findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, double sunLong, double originalSlope, double originalIntercept);
+
+//Create a random grid
+void createRandomGrid(int rows, int cols, double longitude, double latitude, double cellsize, double nodata, int maxValue);
 
 //Calculate x coordinate of intersection between two lines
 //double calcXIntersection(double interceptB, double interceptA, double slopeA, double slopeB);

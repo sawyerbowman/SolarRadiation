@@ -156,6 +156,40 @@ void printValues(Grid* grid){
 }
 
 /**
+ *Create a random grid
+ */
+void createRandomGrid(int rows, int cols, double longitude, double latitude, double cellsize, double nodata, int maxValue){
+    float** data = (float**)malloc(rows*sizeof(float*));
+    int i, j;
+    for (i = 0; i < rows; i++){
+        data[i] = (float*)malloc(cols*sizeof(float));
+    }
+    
+    for (i = 0; i < rows; i++){
+        for (j = 0; j < cols; j++){
+            int valid = rand() % 20;
+            if (valid == 1){
+                data[i][j] = nodata;
+            }
+            else {
+                data[i][j] = rand() % maxValue;
+            }
+        }
+    }
+    
+    Grid* grid = malloc(sizeof(Grid));
+    grid->rows = rows;
+    grid->cols = cols;
+    grid->longitude = longitude;
+    grid->latitude = latitude;
+    grid->cellsize = cellsize;
+    grid->noDataValue = nodata;
+    grid->data = data;
+    
+    writeFile("randomGrid.asc", grid);
+}
+
+/**
  *Initialize a grid
  */
 
@@ -268,13 +302,13 @@ int findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doubl
     double cornerThreeLong = convertJToLong(grid->cols, grid);
     
     double cornerFourLat = grid->latitude;
-    double cornerFourLong = convertJToLong(grid->cols, grid);
+    double cornerFourLong = cornerThreeLong;
     
     //Horizontal lines (one is bottom, two is top of grid), slope of zero
     double slopeOne = 0;
     double interceptOne = grid->latitude;
     double slopeThree = 0;
-    double interceptThree = convertIToLat(0, grid);
+    double interceptThree = cornerTwoLat;
     
     //Vertical lines (two is left, four is right), slope of biggest float
     double slopeTwo = FLT_MAX;
@@ -532,7 +566,7 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         float elevH2 = elevGrid->data[h2y][intersectX];
         
         //elevAngle is the angle of elevation between the h1 and h2 points
-        float elevAngle;
+        //float elevAngle;
         float elevDifference;
         float lowerHeight;
         if (elevH2 > elevH1){
@@ -545,15 +579,16 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         }
         
         //Calculate the elevation angle between h1 and h2 (distance between them is 1)
-        elevAngle = atan((elevDifference)/1);//elevGrid->cellsize
+        //elevAngle = atan((elevDifference)/1);//elevGrid->cellsize
         
         //pY is the relevant decimal of the intersect point's y value
-        float pY = intersectY-floor(intersectY);
+        double pY = intersectY-floor(intersectY);
         //intersectHeight is the elevation of the intersection point
-        float intersectHeight = lowerHeight + (pY*tan(elevAngle));
+        //float intersectHeight = lowerHeight + (pY*tan(elevAngle));
+        double intersectHeight = lowerHeight + elevDifference * pY;
         
         //Calculate the angle of elevation between the interpolated point and the sun
-        double solarAngleIntersection = calcSunAngle(dayNum, localTime, convertIToLat(intersectY, elevGrid), intersectHeight, calcHaversine(sunLong, sunLat, xAxis, intersectYLat));
+        double solarAngleIntersection = calcSunAngle(dayNum, localTime, intersectYLat, intersectHeight, calcHaversine(sunLong, sunLat, xAxis, intersectYLat));
         //Calculate the angle of elevation between the new point and the sun
         //double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i, elevGrid), newHeight, calcHaversine(sunLong, sunLat, currentLong, currentLat));
         
@@ -664,7 +699,7 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         float elevH2 = elevGrid->data[intersectY][h2x];
         
         //elevAngle is the angle of elevation between the h1 and h2 points
-        float elevAngle;
+        //float elevAngle;
         float elevDifference;
         float lowerHeight;
         if (elevH2 > elevH1){
@@ -677,15 +712,16 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
         }
         
         //Calculate the elevation angle between h1 and h2 (distance between them is 1)
-        elevAngle = atan((elevDifference)/1);
+        //elevAngle = atan((elevDifference)/1);
 
         //pX is the relevant decimal of the intersect point's x value
-        float pX = intersectX-floor(intersectX);
+        double pX = intersectX-floor(intersectX);
         //intersectHeight is the elevation of the intersection point
-        float intersectHeight = lowerHeight + (pX*tan(elevAngle));
+        //float intersectHeight = lowerHeight + (pX*tan(elevAngle));
+        double intersectHeight = lowerHeight + elevDifference * pX;
         
         //Calculate the angle of elevation between the interpolated point and the sun
-        double solarAngleIntersection = calcSunAngle(dayNum, localTime, convertIToLat(intersectY, elevGrid), intersectHeight, calcHaversine(sunLong, sunLat, intersectXLong, yAxis));
+        double solarAngleIntersection = calcSunAngle(dayNum, localTime, yAxis, intersectHeight, calcHaversine(sunLong, sunLat, intersectXLong, yAxis));
         //Calculate the angle of elevation between the new point and the sun
         //double solarAngleNew = calcSunAngle(dayNum, localTime, convertIToLat(i, elevGrid), newHeight, calcHaversine(sunLong, sunLat, currentLong, currentLat));
         
@@ -714,7 +750,7 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
 /**
  *Compute the viewshed
  */
-void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone, double turbidity){
+void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double endTime, double timeStep, double dayNum, double timeZone, double turbidity, int numThreads){
     for (; startTime < endTime; startTime += timeStep){
         //Initialize a new viewshed grid for each timestep
         Grid* viewshedGrid;
@@ -724,7 +760,7 @@ void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double 
         double sunLat = calcSunLat(dayNum);
         double sunLong = calcSunLong(startTime, timeZone);
         
-        pthread_t thread[elevGrid->rows];
+        pthread_t thread[numThreads];
         struct ThreadData data[elevGrid->rows];
         
         int i = 0;
@@ -767,7 +803,9 @@ void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double 
 
 void* viewshedLoops(struct ThreadData* data){
     int j;
-    printf("%d\n", data->i);
+    if (data->i%10 == 0){
+        printf("%d\n", data->i);
+    }
     //Calculate lat of current cell from bottom left corner of grid
     double currentLat = convertIToLat(data->i, data->elevGrid);
     for (j = 0; j < data->elevGrid->cols; j++){

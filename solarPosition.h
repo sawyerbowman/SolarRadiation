@@ -60,7 +60,7 @@ double convertToDegrees(double radian);
 double convertToRadians(double degree);
 
 //Determine if it is daylight savings, and recalculate given time
-void isDayLightSavings(double* beginTime, double* endTime);
+void isDayLightSavings(double* beginTime, double* endTime, int daylightSavings);
 
 //Convert time by springing forward to normal time
 void convertTime(double* time);
