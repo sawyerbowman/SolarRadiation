@@ -190,6 +190,40 @@ void createRandomGrid(int rows, int cols, double longitude, double latitude, dou
 }
 
 /**
+ *Create an ordered grid
+ */
+void createOrderedGrid(int rows, int cols, double longitude, double latitude, double cellsize, double nodata, int minValue, int maxValue){
+    float** data = (float**)malloc(rows*sizeof(float*));
+    int i, j;
+    for (i = 0; i < rows; i++){
+        data[i] = (float*)malloc(cols*sizeof(float));
+    }
+    float temp = minValue;
+    for (i = 0; i < rows; i++){
+        for (j = 0; j < cols; j++){
+            data[i][j] = temp;
+        }
+        if (temp > maxValue){
+            temp *= .5;
+        }
+        else {
+            temp *= 5;
+        }
+    }
+    
+    Grid* grid = malloc(sizeof(Grid));
+    grid->rows = rows;
+    grid->cols = cols;
+    grid->longitude = longitude;
+    grid->latitude = latitude;
+    grid->cellsize = cellsize;
+    grid->noDataValue = nodata;
+    grid->data = data;
+    
+    writeFile("orderedGrid.asc", grid);
+}
+
+/**
  *Initialize a grid
  */
 
@@ -321,12 +355,12 @@ int findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doubl
     double xOne = calcXIntersection(interceptOne, originalIntercept, originalSlope, slopeOne);
     //double yOne = calcYIntersection(originalSlope, originalIntercept, xOne);
     //In case slope is vertical, intersection with bottom line is bottom line lat, sun long
-    if (originalSlope == FLT_MAX && sunLat < *endy){
+    if (originalSlope == FLT_MAX && sunLat <= *endy){
         *endy = cornerOneLat;
         *endx = sunLong;
         return 1;
     }
-    else if (originalSlope < 0 && *endy >= cornerOneLat && *endx < xOne && isOnLine(xOne, cornerOneLong, cornerFourLong) == 1){
+    else if (originalSlope < 0 && *endy >= cornerOneLat && *endx <= xOne && isOnLine(xOne, cornerOneLong, cornerFourLong) == 1){
         *endy = cornerOneLat;
         *endx = xOne;
         return 1;
@@ -341,12 +375,12 @@ int findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doubl
     double xTwo = calcXIntersection(interceptTwo, originalIntercept, originalSlope, slopeTwo);
     double yTwo = calcYIntersection(originalSlope, originalIntercept, xTwo);
     //In case slope is horizontal, intersection with left line is sun lat, left line long
-    if (originalSlope == 0 && sunLong < *endx){
+    if (originalSlope == 0 && sunLong <= *endx){
         *endy = sunLat;
         *endx = cornerTwoLong;
         return 0;
     }
-    else if (originalSlope < 0 && *endy < yTwo && *endx >= cornerTwoLong && isOnLine(yTwo, cornerOneLat, cornerTwoLat) == 1){
+    else if (originalSlope < 0 && *endy <= yTwo && *endx >= cornerTwoLong && isOnLine(yTwo, cornerOneLat, cornerTwoLat) == 1){
         *endy = yTwo;
         *endx = cornerTwoLong;
         return 0;
@@ -361,7 +395,7 @@ int findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doubl
     double xThree = calcXIntersection(interceptThree, originalIntercept, originalSlope, slopeThree);
     //double yThree = calcYIntersection(originalSlope, originalIntercept, xThree);
     //In case slope is vertical, intersection with top line is top line lat, sun long
-    if (originalSlope == 0 && sunLong < *endx){
+    if (originalSlope == FLT_MAX && sunLat <= *endy){
         *endy = cornerThreeLat;
         *endx = sunLong;
         return 1;
@@ -371,7 +405,7 @@ int findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doubl
         *endx = xThree;
         return 1;
     }
-    else if (originalSlope >= 0 && *endy <= cornerThreeLat && *endx < xThree && isOnLine(xThree, cornerTwoLong, cornerThreeLong) == 1){
+    else if (originalSlope >= 0 && *endy <= cornerThreeLat && *endx <= xThree && isOnLine(xThree, cornerTwoLong, cornerThreeLong) == 1){
         *endy = cornerThreeLat;
         *endx = xThree;
         return 1;
@@ -381,22 +415,22 @@ int findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doubl
     double xFour = calcXIntersection(interceptFour, originalIntercept, originalSlope, slopeFour);
     double yFour = calcYIntersection(originalSlope, originalIntercept, xFour);
     //In case slope is horizontal, intersection with right line is sun lat, right line long
-    if (originalSlope == 0 && sunLong < *endx){
+    if (originalSlope == 0 && sunLong >= *endx){
         *endy = sunLat;
         *endx = cornerFourLong;
         return 0;
     }
-    else if (originalSlope < 0 && *endy >= yFour && *endx < cornerFourLong && isOnLine(yFour, cornerFourLat, cornerThreeLat) == 1){
+    else if (originalSlope < 0 && *endy >= yFour && *endx <= cornerFourLong && isOnLine(yFour, cornerFourLat, cornerThreeLat) == 1){
         *endy = yFour;
         *endx = cornerFourLong;
         return 0;
     }
-    else if (originalSlope >= 0 && *endy < yFour && *endx < cornerFourLong && isOnLine(yFour, cornerFourLat, cornerThreeLat) == 1){
+    else if (originalSlope >= 0 && *endy <= yFour && *endx <= cornerFourLong && isOnLine(yFour, cornerFourLat, cornerThreeLat) == 1){
         *endy = yFour;
         *endx = cornerFourLong;
         return 0;
     }
-    return 0;
+    return -1;
 }
 
 /**
@@ -508,6 +542,10 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     }
     
     int isHorizontal = findNewEndPoint(elevGrid, &newX, &newY, sunLat, sunLong, slope, intercept);
+    if (isHorizontal == -1){
+        printf("Invalid! No new end point.\n");
+        exit(0);
+    }
     
     if (endx == sunLong && endy == sunLat){
         endx = newX;
@@ -646,6 +684,10 @@ int pointVisibleFromSun(Grid* elevGrid, Grid* energyGrid, double currentLat, dou
     
     //Update isHorizontal (0 for vertical, 1 for horizontal)
     isHorizontal = findNewEndPoint(elevGrid, &newX, &newY, sunLat, sunLong, slope, intercept);
+    if (isHorizontal == -1){
+        printf("Invalid! No new end point.\n");
+        exit(0);
+    }
     
     if (endx == sunLong && endy == sunLat){
         endx = newX;
@@ -809,6 +851,7 @@ void* viewshedLoops(struct ThreadData* data){
     //Calculate lat of current cell from bottom left corner of grid
     double currentLat = convertIToLat(data->i, data->elevGrid);
     for (j = 0; j < data->elevGrid->cols; j++){
+
         //Calculate long of current cell from bottom left corner of grid
         double currentLong = convertJToLong(j, data->elevGrid);
         

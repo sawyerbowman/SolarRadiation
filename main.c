@@ -11,8 +11,8 @@
 
 int main(int argc, char** args){
     
-    //createRandomGrid(500, 500, -75, 40, .00083333333333333, -9999, 1000);
-    
+    createOrderedGrid(500, 20, -75, 40, .00083333333333333, -9999, 1, 10000);
+
     char *elevName, *energyName;
     
     if (argc != 11){
@@ -77,5 +77,5 @@ int main(int argc, char** args){
     
     //Save the viewshed grid to the specified file
     writeFile(energyName, energyGrid);
-    
+ 
 }

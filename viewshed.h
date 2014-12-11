@@ -83,6 +83,9 @@ int findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, doubl
 //Create a random grid
 void createRandomGrid(int rows, int cols, double longitude, double latitude, double cellsize, double nodata, int maxValue);
 
+//Create an ordered grid
+void createOrderedGrid(int rows, int cols, double longitude, double latitude, double cellsize, double nodata, int minValue, int maxValue);
+
 //Calculate x coordinate of intersection between two lines
 //double calcXIntersection(double interceptB, double interceptA, double slopeA, double slopeB);
 
