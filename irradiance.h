@@ -51,7 +51,7 @@ double calcEtIrradiance(double correctionFactor);
 //Calculate correction factor
 double calcCorrectionFactor(double dayAngle);
 
-//Calculate beam irradiance normal to the solar beam
+//Calculate beam irradiance normal to the solar beam 
 double calcBNormal(double et, double turbidity, double m, double rayleigh);
 
 //Calculate relative optical air mass

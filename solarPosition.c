@@ -13,7 +13,7 @@
  */
 
 double calcSunriseOrSunset(double latitude, double longitude, double dayNum, double hour, int sunrise){
-    double latRad = convertToRadians(latitude);
+    double latRad = convertToRadians(latitude); 
     double longRad = convertToRadians(longitude);
     double dayAngle = calcDayAngle(dayNum);
     double declination = calcSunDeclination(dayAngle);

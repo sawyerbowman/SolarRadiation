@@ -26,7 +26,7 @@ int main(int argc, char** args){
     }
     
     elevName = args[1];
-    energyName = args[2];
+    energyName = args[2]; 
     double beginTime = atof(args[3]);
     double endTime = atof(args[4]);
     double timeStep = atof(args[5]);

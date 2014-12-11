@@ -8,18 +8,6 @@
 
 #include "viewshed.h"
 
-static inline double calcXIntersection(double interceptB, double interceptA, double slopeA, double slopeB);
-
-static inline double calcYIntersection(double slope, double intercept, double x);
-
-static inline double convertLatToI(double latitude, Grid* grid);
-
-static inline double convertLongToJ(double longitude, Grid* grid);
-
-static inline double convertIToLat(double i, Grid* grid);
-
-static inline double convertJToLong(double j, Grid* grid);
-
 /**
  *Read data from the file into the grid
  */
@@ -741,10 +729,9 @@ void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double 
             data[i].sunLat = sunLat;
             data[i].sunLong = sunLong;
             data[i].i = i;
-            viewshedLoops(&data[i]);
+            //viewshedLoops(&data[i]);
         }
         
-        /*
         for (i=0; i<elevGrid->rows; i++) {
             pthread_create(&thread[i], NULL, viewshedLoops, &data[i]);
         }
@@ -752,7 +739,6 @@ void computeViewshed(Grid* elevGrid, Grid* energyGrid, double startTime, double 
         for (i=0; i<elevGrid->rows; i++) {
             pthread_join(thread[i], NULL);
         }
-        */
         
         //Create unique name for new viewshed and write to that file
         char buf[100];

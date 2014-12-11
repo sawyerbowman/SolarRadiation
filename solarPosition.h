@@ -9,7 +9,7 @@
 #ifndef _solarPosition_h
 #define _solarPosition_h
 
-#define TROPIC_LAT 23.437778
+#define TROPIC_LAT 23.437778 
 #define JUNE_21 171
 
 #include <stdio.h>

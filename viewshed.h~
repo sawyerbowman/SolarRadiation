@@ -81,10 +81,10 @@ double calcHaversine(double startx, double starty, double endx, double endy);
 int findNewEndPoint(Grid* grid, double* endx, double* endy, double sunLat, double sunLong, double originalSlope, double originalIntercept);
 
 //Calculate x coordinate of intersection between two lines
-//double calcXIntersection(double interceptB, double interceptA, double slopeA, double slopeB);
+double calcXIntersection(double interceptB, double interceptA, double slopeA, double slopeB);
 
 //Calculate y coordinate of intersection between two lines
-//double calcYIntersection(double slope, double intercept, double x);
+double calcYIntersection(double slope, double intercept, double x);
 
 //Convert latitude to i coordinate
 //double convertLatToI(double latitude, Grid* grid);

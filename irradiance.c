@@ -176,7 +176,7 @@ double calcDiffuseIrradiance(double et, double transmission, double solar) {
 }
 
 /**
- *Calculate value of transmission function
+ *Calculate value of transmission function 
  */
 
 double calcTransmission(double turbidity) {
